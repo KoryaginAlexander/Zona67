@@ -1,0 +1,67 @@
+INSERT INTO categories (name, slug, image_url) VALUES
+  ('Смартфоны',  'smartfony',  'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400'),
+  ('Ноутбуки',   'noutbuki',   'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400'),
+  ('Планшеты',   'planshety',  'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400'),
+  ('Наушники',   'naushniki',  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400'),
+  ('Аксессуары', 'aksessuary', 'https://images.unsplash.com/photo-1586495777744-4e6232bf8a4c?w=400')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO products (id, category_id, name, description, price, stock, brand, model, image_urls, is_active, created_at, updated_at) VALUES
+  (gen_random_uuid(), 1, 'iPhone 15 Pro',           'Флагманский смартфон Apple с чипом A17 Pro',            129990, 15, 'Apple',   'iPhone 15 Pro',        '["https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 1, 'iPhone 15',                'Смартфон Apple с Dynamic Island',                        89990, 25, 'Apple',   'iPhone 15',            '["https://images.unsplash.com/photo-1694825049942-0a4fff5e0a41?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 1, 'Samsung Galaxy S24 Ultra', 'Флагман Samsung с S Pen и 200 Мп камерой',             119990, 10, 'Samsung', 'Galaxy S24 Ultra',     '["https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 1, 'Samsung Galaxy S24',       'Компактный флагман Samsung',                             79990, 20, 'Samsung', 'Galaxy S24',           '["https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 1, 'Xiaomi 14',                'Флагман Xiaomi с камерой Leica',                         69990, 18, 'Xiaomi',  'Xiaomi 14',            '["https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 1, 'Xiaomi Redmi Note 13',     'Бюджетный смартфон с AMOLED экраном',                   19990, 40, 'Xiaomi',  'Redmi Note 13',        '["https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 2, 'MacBook Pro 14"',           'Ноутбук Apple с чипом M3 Pro',                         199990,  8, 'Apple',   'MacBook Pro 14',       '["https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 2, 'MacBook Air 15"',           'Тонкий и лёгкий ноутбук Apple с M2',                   149990, 12, 'Apple',   'MacBook Air 15',       '["https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 2, 'ASUS ROG Zephyrus G14',    'Игровой ноутбук с RTX 4060',                             99990,  6, 'ASUS',    'ROG Zephyrus G14',     '["https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 2, 'Lenovo ThinkPad X1 Carbon','Бизнес-ноутбук с долгим временем работы',               129990,  9, 'Lenovo',  'ThinkPad X1 Carbon',   '["https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 2, 'HP Pavilion 15',           'Универсальный ноутбук для учёбы и работы',               49990, 20, 'HP',      'Pavilion 15',          '["https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 3, 'iPad Pro 12.9"',            'Планшет Apple с чипом M2 и Liquid Retina XDR',         109990,  7, 'Apple',   'iPad Pro 12.9',        '["https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 3, 'iPad Air 5',               'Мощный планшет Apple с чипом M1',                        69990, 14, 'Apple',   'iPad Air 5',           '["https://images.unsplash.com/photo-1561154464-82e9adf32764?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 3, 'Samsung Galaxy Tab S9',    'Флагманский Android-планшет',                             79990, 10, 'Samsung', 'Galaxy Tab S9',        '["https://images.unsplash.com/photo-1542751110-97427bbecf20?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 3, 'Xiaomi Pad 6',             'Планшет с 144 Гц экраном и Snapdragon 870',               29990, 22, 'Xiaomi',  'Pad 6',                '["https://images.unsplash.com/photo-1589739900266-43ab1cfaf3ba?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 4, 'AirPods Pro 2',            'Беспроводные наушники Apple с ANC',                       24990, 30, 'Apple',   'AirPods Pro 2',        '["https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 4, 'Sony WH-1000XM5',          'Лучшие наушники с шумоподавлением',                       29990, 18, 'Sony',    'WH-1000XM5',           '["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 4, 'Samsung Galaxy Buds 2 Pro','Беспроводные вкладыши с Hi-Fi звуком',                    12990, 25, 'Samsung', 'Galaxy Buds 2 Pro',    '["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 4, 'JBL Tune 770NC',           'Накладные наушники с ANC до 70 часов',                     8990, 35, 'JBL',     'Tune 770NC',           '["https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 5, 'Apple Watch Series 9',     'Умные часы с функцией Double Tap',                        39990, 12, 'Apple',   'Watch Series 9',       '["https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 5, 'Зарядное MagSafe 15W',     'Оригинальная беспроводная зарядка Apple',                  3990, 50, 'Apple',   'MagSafe Charger',      '["https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 5, 'Чехол iPhone 15 Pro',      'Кожаный чехол Apple для iPhone 15 Pro',                    3490, 45, 'Apple',   'Leather Case',         '["https://images.unsplash.com/photo-1586495777744-4e6232bf8a4c?w=600"]', true, NOW(), NOW()),
+  (gen_random_uuid(), 5, 'Powerbank Xiaomi 20000',   'Внешний аккумулятор 20000 мАч, 33W',                       2990, 60, 'Xiaomi',  '20000 33W',            '["https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600"]', true, NOW(), NOW());
+
+INSERT INTO product_specs (product_id, spec_key, spec_value)
+SELECT p.id, s.k, s.v FROM products p
+JOIN (VALUES
+  ('iPhone 15 Pro',           'Экран',       '6.1" Super Retina XDR, 2556x1179'),
+  ('iPhone 15 Pro',           'Процессор',   'Apple A17 Pro'),
+  ('iPhone 15 Pro',           'Память',      '256 ГБ'),
+  ('iPhone 15 Pro',           'Камера',      '48 + 12 + 12 Мп'),
+  ('iPhone 15 Pro',           'Батарея',     '3274 мАч'),
+  ('iPhone 15 Pro',           'ОС',          'iOS 17'),
+  ('Samsung Galaxy S24 Ultra','Экран',       '6.8" Dynamic AMOLED, 3088x1440'),
+  ('Samsung Galaxy S24 Ultra','Процессор',   'Snapdragon 8 Gen 3'),
+  ('Samsung Galaxy S24 Ultra','Память',      '256 ГБ'),
+  ('Samsung Galaxy S24 Ultra','Камера',      '200 + 12 + 50 + 10 Мп'),
+  ('Samsung Galaxy S24 Ultra','Батарея',     '5000 мАч'),
+  ('Samsung Galaxy S24 Ultra','ОС',          'Android 14'),
+  ('MacBook Pro 14"',          'Процессор',   'Apple M3 Pro'),
+  ('MacBook Pro 14"',          'ОЗУ',         '18 ГБ'),
+  ('MacBook Pro 14"',          'Хранилище',   '512 ГБ SSD'),
+  ('MacBook Pro 14"',          'Экран',       '14.2" Liquid Retina XDR'),
+  ('MacBook Pro 14"',          'Автономность','до 18 часов'),
+  ('Sony WH-1000XM5',         'Тип',         'Накладные, закрытые'),
+  ('Sony WH-1000XM5',         'ANC',         'Да'),
+  ('Sony WH-1000XM5',         'Автономность','30 часов'),
+  ('Sony WH-1000XM5',         'Bluetooth',   '5.2'),
+  ('Sony WH-1000XM5',         'Кодеки',      'LDAC, AAC, SBC'),
+  ('AirPods Pro 2',           'Тип',         'Вкладыши'),
+  ('AirPods Pro 2',           'ANC',         'Адаптивное'),
+  ('AirPods Pro 2',           'Автономность','6 часов (30 с кейсом)'),
+  ('AirPods Pro 2',           'Чип',         'Apple H2'),
+  ('Apple Watch Series 9',    'Экран',       '45mm Always-On Retina'),
+  ('Apple Watch Series 9',    'Чип',         'Apple S9'),
+  ('Apple Watch Series 9',    'Автономность','до 18 часов'),
+  ('Apple Watch Series 9',    'Защита',      'WR50')
+) AS s(name, k, v) ON p.name = s.name;

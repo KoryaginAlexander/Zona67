@@ -1,0 +1,893 @@
+openapi: "3.1.0"
+info:
+  title: RetailStore API
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:   { type: string, example: NOT_FOUND }
+        message: { type: string, example: Resource not found }
+        statusCode: { type: integer, example: 404 }
+
+    MessageResponse:
+      type: object
+      properties:
+        message: { type: string }
+
+    AccessTokenResponse:
+      type: object
+      properties:
+        accessToken: { type: string }
+
+    # --- Auth ---
+    LoginRequest:
+      type: object
+      required: [firebaseIdToken]
+      properties:
+        firebaseIdToken: { type: string }
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+
+    LogoutRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+
+    UserResponse:
+      type: object
+      properties:
+        id:       { type: string, format: uuid }
+        email:    { type: string }
+        fullName: { type: string, nullable: true }
+        phone:    { type: string, nullable: true }
+        address:  { type: string, nullable: true }
+        role:     { type: string, enum: [CUSTOMER, ADMIN] }
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:  { type: string }
+        refreshToken: { type: string }
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    # --- User ---
+    UpdateUserRequest:
+      type: object
+      properties:
+        fullName: { type: string, nullable: true }
+        phone:    { type: string, nullable: true }
+        address:  { type: string, nullable: true }
+
+    # --- Category ---
+    CategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:     { type: string }
+        imageUrl: { type: string, nullable: true }
+
+    CategoryResponse:
+      type: object
+      properties:
+        id:       { type: integer }
+        name:     { type: string }
+        slug:     { type: string }
+        imageUrl: { type: string, nullable: true }
+
+    # --- Product ---
+    ProductSpecDto:
+      type: object
+      properties:
+        key:   { type: string }
+        value: { type: string }
+
+    ProductResponse:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        categoryId:  { type: integer }
+        name:        { type: string }
+        description: { type: string, nullable: true }
+        price:       { type: number }
+        stock:       { type: integer }
+        brand:       { type: string, nullable: true }
+        model:       { type: string, nullable: true }
+        imageUrls:   { type: array, items: { type: string } }
+        isActive:    { type: boolean }
+        specs:       { type: array, items: { $ref: '#/components/schemas/ProductSpecDto' } }
+
+    ProductsPageResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/ProductResponse' } }
+        total: { type: integer }
+        page:  { type: integer }
+        limit: { type: integer }
+
+    CreateProductRequest:
+      type: object
+      required: [categoryId, name, price]
+      properties:
+        categoryId:  { type: integer }
+        name:        { type: string }
+        description: { type: string, nullable: true }
+        price:       { type: number }
+        stock:       { type: integer, default: 0 }
+        brand:       { type: string, nullable: true }
+        model:       { type: string, nullable: true }
+        imageUrls:   { type: array, items: { type: string } }
+        specs:       { type: array, items: { $ref: '#/components/schemas/ProductSpecDto' } }
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        categoryId:  { type: integer, nullable: true }
+        name:        { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        price:       { type: number, nullable: true }
+        stock:       { type: integer, nullable: true }
+        brand:       { type: string, nullable: true }
+        model:       { type: string, nullable: true }
+        imageUrls:   { type: array, items: { type: string }, nullable: true }
+        specs:       { type: array, items: { $ref: '#/components/schemas/ProductSpecDto' }, nullable: true }
+
+    # --- Cart ---
+    AddCartItemRequest:
+      type: object
+      required: [productId]
+      properties:
+        productId: { type: string, format: uuid }
+        quantity:  { type: integer, default: 1 }
+
+    UpdateCartItemRequest:
+      type: object
+      required: [quantity]
+      properties:
+        quantity: { type: integer }
+
+    MergeItem:
+      type: object
+      properties:
+        productId: { type: string, format: uuid }
+        quantity:  { type: integer }
+
+    MergeCartRequest:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/MergeItem' } }
+
+    CartItemResponse:
+      type: object
+      properties:
+        id:              { type: string, format: uuid }
+        productId:       { type: string, format: uuid }
+        productName:     { type: string }
+        productPrice:    { type: number }
+        productImageUrl: { type: string, nullable: true }
+        stock:           { type: integer }
+        quantity:        { type: integer }
+
+    CartResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/CartItemResponse' } }
+        total: { type: number }
+
+    # --- Wishlist ---
+    WishlistItemResponse:
+      type: object
+      properties:
+        id:              { type: string, format: uuid }
+        productId:       { type: string, format: uuid }
+        productName:     { type: string }
+        productPrice:    { type: number }
+        productImageUrl: { type: string, nullable: true }
+        stock:           { type: integer }
+
+    # --- Order ---
+    PlaceOrderRequest:
+      type: object
+      properties:
+        deliveryAddress: { type: string, nullable: true }
+        comment:         { type: string, nullable: true }
+
+    UpdateStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED] }
+
+    OrderItemResponse:
+      type: object
+      properties:
+        id:           { type: string, format: uuid }
+        productId:    { type: string, format: uuid }
+        productName:  { type: string }
+        productPrice: { type: number }
+        quantity:     { type: integer }
+
+    OrderResponse:
+      type: object
+      properties:
+        id:              { type: string, format: uuid }
+        userId:          { type: string, format: uuid }
+        status:          { type: string }
+        totalAmount:     { type: number }
+        deliveryAddress: { type: string, nullable: true }
+        comment:         { type: string, nullable: true }
+        items:           { type: array, items: { $ref: '#/components/schemas/OrderItemResponse' } }
+        createdAt:       { type: string }
+        updatedAt:       { type: string }
+
+paths:
+  # ==================== AUTH ====================
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Войти через Firebase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        "200":
+          description: Успешный вход
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        "401":
+          description: Невалидный Firebase токен
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Обновить access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        "200":
+          description: Новый access token
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccessTokenResponse' }
+        "401":
+          description: Невалидный refresh token
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Выйти
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LogoutRequest' }
+      responses:
+        "200":
+          description: Успешный выход
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # ==================== USERS ====================
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Получить текущего пользователя
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Данные пользователя
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserResponse' }
+        "404":
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    patch:
+      tags: [Users]
+      summary: Обновить профиль
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateUserRequest' }
+      responses:
+        "200":
+          description: Обновлённые данные
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserResponse' }
+
+  /users:
+    get:
+      tags: [Users]
+      summary: Список всех пользователей (ADMIN)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/UserResponse' }
+        "403":
+          description: Нет прав
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Пользователь по ID (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Данные пользователя
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserResponse' }
+        "403":
+          description: Нет прав
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        "404":
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  # ==================== CATEGORIES ====================
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Список всех категорий
+      responses:
+        "200":
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CategoryResponse' }
+    post:
+      tags: [Categories]
+      summary: Создать категорию (ADMIN)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryRequest' }
+      responses:
+        "201":
+          description: Созданная категория
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryResponse' }
+        "403":
+          description: Нет прав
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /categories/{id}:
+    put:
+      tags: [Categories]
+      summary: Обновить категорию (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryRequest' }
+      responses:
+        "200":
+          description: Обновлённая категория
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryResponse' }
+        "404":
+          description: Категория не найдена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    delete:
+      tags: [Categories]
+      summary: Удалить категорию (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Удалено
+        "404":
+          description: Категория не найдена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  # ==================== PRODUCTS ====================
+  /products:
+    get:
+      tags: [Products]
+      summary: Список товаров (с пагинацией и фильтрами)
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: categoryId
+          in: query
+          schema: { type: integer }
+        - name: brand
+          in: query
+          schema: { type: string }
+        - name: minPrice
+          in: query
+          schema: { type: number }
+        - name: maxPrice
+          in: query
+          schema: { type: number }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [price_asc, price_desc, name_asc, name_desc] }
+        - name: activeOnly
+          in: query
+          schema: { type: boolean, default: true }
+      responses:
+        "200":
+          description: Страница товаров
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductsPageResponse' }
+    post:
+      tags: [Products]
+      summary: Создать товар (ADMIN)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateProductRequest' }
+      responses:
+        "201":
+          description: Созданный товар
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductResponse' }
+        "403":
+          description: Нет прав
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /products/{id}:
+    get:
+      tags: [Products]
+      summary: Товар по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Данные товара
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductResponse' }
+        "404":
+          description: Товар не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    put:
+      tags: [Products]
+      summary: Обновить товар (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProductRequest' }
+      responses:
+        "200":
+          description: Обновлённый товар
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductResponse' }
+        "404":
+          description: Товар не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /products/{id}/deactivate:
+    patch:
+      tags: [Products]
+      summary: Деактивировать товар (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Товар деактивирован
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /products/{id}/activate:
+    patch:
+      tags: [Products]
+      summary: Активировать товар (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Товар активирован
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # ==================== CART ====================
+  /cart:
+    get:
+      tags: [Cart]
+      summary: Получить корзину
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Содержимое корзины
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CartResponse' }
+    delete:
+      tags: [Cart]
+      summary: Очистить корзину
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204":
+          description: Корзина очищена
+
+  /cart/items:
+    post:
+      tags: [Cart]
+      summary: Добавить товар в корзину
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddCartItemRequest' }
+      responses:
+        "201":
+          description: Добавленный элемент корзины
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CartItemResponse' }
+
+  /cart/items/{productId}:
+    patch:
+      tags: [Cart]
+      summary: Обновить количество товара в корзине
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateCartItemRequest' }
+      responses:
+        "200":
+          description: Обновлённый элемент корзины
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CartItemResponse' }
+        "404":
+          description: Элемент не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    delete:
+      tags: [Cart]
+      summary: Удалить товар из корзины
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204":
+          description: Удалено
+
+  /cart/merge:
+    post:
+      tags: [Cart]
+      summary: Слить гостевую корзину с пользовательской
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MergeCartRequest' }
+      responses:
+        "200":
+          description: Обновлённая корзина
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CartResponse' }
+
+  # ==================== WISHLIST ====================
+  /wishlist:
+    get:
+      tags: [Wishlist]
+      summary: Получить список желаемого
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Список желаемого
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/WishlistItemResponse' }
+
+  /wishlist/{productId}:
+    post:
+      tags: [Wishlist]
+      summary: Добавить в список желаемого
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Добавленный элемент
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WishlistItemResponse' }
+    delete:
+      tags: [Wishlist]
+      summary: Удалить из списка желаемого
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204":
+          description: Удалено
+
+  # ==================== ORDERS ====================
+  /orders:
+    post:
+      tags: [Orders]
+      summary: Оформить заказ
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PlaceOrderRequest' }
+      responses:
+        "201":
+          description: Созданный заказ
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderResponse' }
+        "400":
+          description: Корзина пуста
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        "409":
+          description: Товар не в наличии
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    get:
+      tags: [Orders]
+      summary: Все заказы (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED] }
+      responses:
+        "200":
+          description: Список заказов
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/OrderResponse' }
+        "403":
+          description: Нет прав
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /orders/my:
+    get:
+      tags: [Orders]
+      summary: Мои заказы
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Список моих заказов
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/OrderResponse' }
+
+  /orders/my/{id}:
+    get:
+      tags: [Orders]
+      summary: Мой заказ по ID
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Данные заказа
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderResponse' }
+        "404":
+          description: Заказ не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Заказ по ID (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Данные заказа
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderResponse' }
+        "404":
+          description: Заказ не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /orders/{id}/status:
+    patch:
+      tags: [Orders]
+      summary: Изменить статус заказа (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        "200":
+          description: Обновлённый заказ
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderResponse' }
+        "400":
+          description: Некорректный переход статуса
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        "404":
+          description: Заказ не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /orders/{id}/cancel:
+    patch:
+      tags: [Orders]
+      summary: Отменить заказ (ADMIN)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Отменённый заказ
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderResponse' }
+        "404":
+          description: Заказ не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }

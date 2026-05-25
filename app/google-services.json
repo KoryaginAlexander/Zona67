@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "5082167758",
+    "project_id": "zona67-73e68",
+    "storage_bucket": "zona67-73e68.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:5082167758:android:2e9ba9584d2dcf133d539f",
+        "android_client_info": {
+          "package_name": "com.retailstore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDK2P3cqtTIk-Z8aAA3BnBqEv7A4kCLJFg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
