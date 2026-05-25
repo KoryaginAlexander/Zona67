@@ -41,6 +41,7 @@ fun ProductDetailScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             uiState.product?.let { product ->
@@ -91,7 +92,8 @@ fun ProductDetailScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(300.dp)
+                                .statusBarsPadding()
+                                .height(280.dp)
                         ) {
                             AsyncImage(
                                 model = product.firstImageUrl,
@@ -99,23 +101,10 @@ fun ProductDetailScreen(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
-                            // gradient overlay top for button readability
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp)
-                                    .background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(Color.Black.copy(alpha = 0.45f), Color.Transparent)
-                                        )
-                                    )
-                                    .align(Alignment.TopCenter)
-                            )
                             // Back button
                             Box(
                                 modifier = Modifier
-                                    .padding(start = 12.dp, top = 12.dp)
-                                    .statusBarsPadding()
+                                    .padding(start = 12.dp, top = 10.dp)
                                     .size(40.dp)
                                     .clip(CircleShape)
                                     .background(Color.Black.copy(alpha = 0.35f))
@@ -134,8 +123,7 @@ fun ProductDetailScreen(
                             // Wishlist button
                             Box(
                                 modifier = Modifier
-                                    .padding(end = 12.dp, top = 12.dp)
-                                    .statusBarsPadding()
+                                    .padding(end = 12.dp, top = 10.dp)
                                     .size(40.dp)
                                     .clip(CircleShape)
                                     .background(Color.Black.copy(alpha = 0.35f))

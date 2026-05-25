@@ -90,6 +90,7 @@ fun RetailStoreNavGraph() {
     ) || currentRoute?.startsWith(Screen.Catalog.baseRoute) == true
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
@@ -116,6 +117,7 @@ fun RetailStoreNavGraph() {
                                     ) {
                                         popUpTo(Screen.Home.route) { inclusive = false }
                                         launchSingleTop = true
+                                        if (item.screen == Screen.Catalog) restoreState = true
                                     }
                                 } else {
                                     navController.navigate(item.screen.route) {
