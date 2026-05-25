@@ -1,5 +1,6 @@
 package com.retailstore.presentation.screens.catalog
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.retailstore.domain.model.Category
@@ -8,6 +9,7 @@ import com.retailstore.domain.model.Result
 import com.retailstore.data.local.TokenDataStore
 import com.retailstore.domain.repository.CartRepository
 import com.retailstore.domain.repository.ProductRepository
+import com.retailstore.domain.repository.WishlistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -29,7 +31,9 @@ data class CatalogUiState(
     val totalPages: Int = 1,
     val isLastPage: Boolean = false,
     val error: String? = null,
-    val cartMessage: String? = null
+    val cartMessage: String? = null,
+    val wishlistIds: Set<String> = emptySet(),
+    val inStockOnly: Boolean = false
 )
 
 @OptIn(FlowPreview::class)
@@ -37,7 +41,9 @@ data class CatalogUiState(
 class CatalogViewModel @Inject constructor(
     private val productRepository: ProductRepository,
     private val cartRepository: CartRepository,
-    private val tokenDataStore: TokenDataStore
+    private val wishlistRepository: WishlistRepository,
+    private val tokenDataStore: TokenDataStore,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CatalogUiState(loading = true))
@@ -47,7 +53,13 @@ class CatalogViewModel @Inject constructor(
     private var loadJob: Job? = null
 
     init {
+        val initialQuery = savedStateHandle.get<String>("query") ?: ""
+        if (initialQuery.isNotBlank()) {
+            _uiState.update { it.copy(searchQuery = initialQuery) }
+            searchFlow.value = initialQuery
+        }
         loadCategories()
+        loadWishlist()
         searchFlow.debounce(300).onEach { loadProducts(resetPage = true) }.launchIn(viewModelScope)
         loadProducts(resetPage = true)
     }
@@ -56,6 +68,29 @@ class CatalogViewModel @Inject constructor(
         when (val result = productRepository.getCategories()) {
             is Result.Success -> _uiState.update { it.copy(categories = result.data) }
             else -> {}
+        }
+    }
+
+    private fun loadWishlist() = viewModelScope.launch {
+        if (!tokenDataStore.isLoggedIn()) return@launch
+        when (val r = wishlistRepository.getWishlist()) {
+            is Result.Success -> _uiState.update { it.copy(wishlistIds = r.data.map { it.productId }.toSet()) }
+            else -> {}
+        }
+    }
+
+    fun toggleWishlist(product: Product) = viewModelScope.launch {
+        if (!tokenDataStore.isLoggedIn()) {
+            _uiState.update { it.copy(cartMessage = "Войдите, чтобы добавить в избранное") }
+            return@launch
+        }
+        val isIn = _uiState.value.wishlistIds.contains(product.id)
+        if (isIn) {
+            wishlistRepository.removeFromWishlist(product.id)
+            _uiState.update { it.copy(wishlistIds = _uiState.value.wishlistIds - product.id) }
+        } else {
+            wishlistRepository.addToWishlist(product.id)
+            _uiState.update { it.copy(wishlistIds = _uiState.value.wishlistIds + product.id) }
         }
     }
 
@@ -74,8 +109,8 @@ class CatalogViewModel @Inject constructor(
         loadProducts(resetPage = true)
     }
 
-    fun setFilters(brand: String?, minPrice: Double?, maxPrice: Double?) {
-        _uiState.update { it.copy(brand = brand, minPrice = minPrice, maxPrice = maxPrice) }
+    fun setFilters(brand: String?, minPrice: Double?, maxPrice: Double?, inStockOnly: Boolean = false, sortBy: String? = null) {
+        _uiState.update { it.copy(brand = brand, minPrice = minPrice, maxPrice = maxPrice, inStockOnly = inStockOnly, sortBy = sortBy) }
         loadProducts(resetPage = true)
     }
 
@@ -103,8 +138,10 @@ class CatalogViewModel @Inject constructor(
                 activeOnly = true
             )) {
                 is Result.Success -> {
-                    val newProducts = if (resetPage) result.data.items
-                    else state.products + result.data.items
+                    val filtered = if (state.inStockOnly)
+                        result.data.items.filter { it.stock > 0 }
+                    else result.data.items
+                    val newProducts = if (resetPage) filtered else state.products + filtered
                     val totalPages = (result.data.total + 19) / 20
                     _uiState.update {
                         it.copy(

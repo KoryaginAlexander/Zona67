@@ -20,7 +20,8 @@ data class ProductDetailUiState(
     val loading: Boolean = true,
     val product: Product? = null,
     val error: String? = null,
-    val message: String? = null
+    val message: String? = null,
+    val isInWishlist: Boolean = false
 )
 
 @HiltViewModel
@@ -37,8 +38,19 @@ class ProductDetailViewModel @Inject constructor(
     fun loadProduct(id: String) = viewModelScope.launch {
         _uiState.value = ProductDetailUiState(loading = true)
         when (val result = productRepository.getProductById(id)) {
-            is Result.Success -> _uiState.value = ProductDetailUiState(loading = false, product = result.data)
+            is Result.Success -> {
+                _uiState.value = ProductDetailUiState(loading = false, product = result.data)
+                checkWishlistStatus(id)
+            }
             is Result.Error -> _uiState.value = ProductDetailUiState(loading = false, error = result.message)
+            else -> {}
+        }
+    }
+
+    private fun checkWishlistStatus(productId: String) = viewModelScope.launch {
+        if (!tokenDataStore.isLoggedIn()) return@launch
+        when (val r = wishlistRepository.getWishlist()) {
+            is Result.Success -> _uiState.update { it.copy(isInWishlist = r.data.any { item -> item.productId == productId }) }
             else -> {}
         }
     }
@@ -59,8 +71,14 @@ class ProductDetailViewModel @Inject constructor(
             _uiState.update { it.copy(message = "Войдите, чтобы добавить в избранное") }
             return@launch
         }
-        wishlistRepository.addToWishlist(product.id)
-        _uiState.update { it.copy(message = "Добавлено в избранное") }
+        val isIn = _uiState.value.isInWishlist
+        if (isIn) {
+            wishlistRepository.removeFromWishlist(product.id)
+            _uiState.update { it.copy(isInWishlist = false, message = "Удалено из избранного") }
+        } else {
+            wishlistRepository.addToWishlist(product.id)
+            _uiState.update { it.copy(isInWishlist = true, message = "Добавлено в избранное") }
+        }
     }
 
     fun clearMessage() = _uiState.update { it.copy(message = null) }

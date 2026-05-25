@@ -10,7 +10,9 @@ import com.retailstore.domain.model.CartItem
 import com.retailstore.domain.model.Result
 import com.retailstore.domain.repository.CartRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,10 +24,14 @@ class CartRepositoryImpl @Inject constructor(
     private val tokenDataStore: TokenDataStore
 ) : CartRepository {
 
+    private val _apiCartCount = MutableStateFlow(0)
+
     override suspend fun getCart(): Result<Cart> = try {
         val response = cartApi.getCart()
         if (response.isSuccessful) {
-            Result.Success(response.body()!!.toDomain())
+            val cart = response.body()!!.toDomain()
+            _apiCartCount.value = cart.itemCount
+            Result.Success(cart)
         } else {
             Result.Error(response.code(), "Failed to load cart")
         }
@@ -36,6 +42,7 @@ class CartRepositoryImpl @Inject constructor(
     override suspend fun addToCart(productId: String, quantity: Int): Result<CartItem> = try {
         val response = cartApi.addItem(AddCartItemRequest(productId, quantity))
         if (response.isSuccessful) {
+            _apiCartCount.value = _apiCartCount.value + quantity
             Result.Success(response.body()!!.toDomain())
         } else {
             Result.Error(response.code(), "Failed to add item")
@@ -64,6 +71,7 @@ class CartRepositoryImpl @Inject constructor(
 
     override suspend fun clearCart(): Result<Unit> = try {
         cartApi.clearCart()
+        _apiCartCount.value = 0
         Result.Success(Unit)
     } catch (e: Exception) {
         Result.Error(message = e.message ?: "Unknown error")
@@ -79,7 +87,9 @@ class CartRepositoryImpl @Inject constructor(
             val response = cartApi.mergeCart(MergeCartRequest(mergeItems))
             if (response.isSuccessful) {
                 guestCartDao.deleteAll()
-                Result.Success(response.body()!!.toDomain())
+                val cart = response.body()!!.toDomain()
+                _apiCartCount.value = cart.itemCount
+                Result.Success(cart)
             } else {
                 Result.Error(response.code(), "Failed to merge cart")
             }
@@ -90,6 +100,12 @@ class CartRepositoryImpl @Inject constructor(
 
     override fun getGuestCartCount(): Flow<Int> =
         guestCartDao.getTotalQuantity().map { it ?: 0 }
+
+    override fun observeCartCount(): Flow<Int> = tokenDataStore.accessToken
+        .flatMapLatest { token ->
+            if (token != null) _apiCartCount
+            else guestCartDao.getTotalQuantity().map { it ?: 0 }
+        }
 
     override suspend fun addToGuestCart(productId: String, productName: String, productPrice: Double, imageUrl: String?, quantity: Int) {
         val existing = guestCartDao.findByProductId(productId)

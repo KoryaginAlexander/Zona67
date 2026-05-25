@@ -1,14 +1,18 @@
 package com.retailstore.presentation.screens.admin.orders
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -17,6 +21,7 @@ import com.retailstore.domain.model.Order
 import com.retailstore.domain.model.Result
 import com.retailstore.domain.repository.OrderRepository
 import com.retailstore.presentation.components.OrderStatusChip
+import com.retailstore.presentation.theme.OrangePrimary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,13 +37,13 @@ data class AdminOrderDetailUiState(
     val message: String? = null
 )
 
-private val ORDER_TRANSITIONS = mapOf(
-    "PENDING" to listOf("CONFIRMED", "CANCELLED"),
-    "CONFIRMED" to listOf("PROCESSING", "CANCELLED"),
-    "PROCESSING" to listOf("SHIPPED", "CANCELLED"),
-    "SHIPPED" to listOf("DELIVERED", "CANCELLED"),
-    "DELIVERED" to emptyList(),
-    "CANCELLED" to emptyList()
+private val ALL_STATUSES = listOf(
+    "PENDING" to "Новый",
+    "CONFIRMED" to "Подтверждён",
+    "PROCESSING" to "В обработке",
+    "SHIPPED" to "Отправлен",
+    "DELIVERED" to "Доставлен",
+    "CANCELLED" to "Отменён"
 )
 
 @HiltViewModel
@@ -87,6 +92,7 @@ fun AdminOrderDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showCancelDialog by remember { mutableStateOf(false) }
     var statusExpanded by remember { mutableStateOf(false) }
+    var pendingStatus by remember { mutableStateOf("") }
 
     LaunchedEffect(orderId) { viewModel.load(orderId) }
     LaunchedEffect(uiState.message) { uiState.message?.let { snackbarHostState.showSnackbar(it); viewModel.clearMessage() } }
@@ -97,81 +103,190 @@ fun AdminOrderDetailScreen(
             title = { Text("Отменить заказ?") },
             text = { Text("Товары будут возвращены на склад. Действие необратимо.") },
             confirmButton = {
-                TextButton(onClick = { showCancelDialog = false; viewModel.cancelOrder(orderId) }) { Text("Отменить заказ") }
+                TextButton(onClick = {
+                    showCancelDialog = false
+                    viewModel.cancelOrder(orderId)
+                }) {
+                    Text("Отменить заказ", color = MaterialTheme.colorScheme.error)
+                }
             },
-            dismissButton = { TextButton(onClick = { showCancelDialog = false }) { Text("Закрыть") } }
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false; pendingStatus = "" }) { Text("Закрыть") }
+            }
         )
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Детали заказа") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null) } }
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .statusBarsPadding()
+                    .height(56.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = Color(0xFF1A1A1A))
+                }
+                Text(
+                    text = "Детали заказа",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1A1A1A)
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         if (uiState.loading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = OrangePrimary)
+            }
         } else uiState.order?.let { order ->
-            LazyColumn(modifier = Modifier.padding(padding).padding(16.dp)) {
+            LazyColumn(
+                modifier = Modifier.padding(padding),
+                contentPadding = PaddingValues(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 item {
-                    Text("Заказ #${order.id.takeLast(8)}", style = MaterialTheme.typography.titleLarge)
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        OrderStatusChip(order.status)
-                        Text(order.createdAt.take(10), style = MaterialTheme.typography.bodySmall)
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Text("Сумма: ${order.totalAmount.toLong()} ₽", style = MaterialTheme.typography.titleMedium)
-                    order.deliveryAddress?.let { Text("Адрес: $it") }
-                    order.comment?.let { Text("Комментарий: $it") }
-                    Spacer(Modifier.height(16.dp))
-
-                    val allowedStatuses = ORDER_TRANSITIONS[order.status] ?: emptyList()
-                    if (allowedStatuses.isNotEmpty()) {
-                        ExposedDropdownMenuBox(expanded = statusExpanded, onExpandedChange = { statusExpanded = it }) {
-                            OutlinedTextField(
-                                value = "Изменить статус...",
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("Статус") },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(statusExpanded) },
-                                modifier = Modifier.fillMaxWidth().menuAnchor()
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "Заказ #${order.id.takeLast(8)}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A1A1A)
                             )
-                            ExposedDropdownMenu(expanded = statusExpanded, onDismissRequest = { statusExpanded = false }) {
-                                allowedStatuses.filter { it != "CANCELLED" }.forEach { s ->
-                                    DropdownMenuItem(text = { Text(s) }, onClick = {
-                                        statusExpanded = false
-                                        viewModel.updateStatus(orderId, s)
-                                    })
+                            Spacer(Modifier.height(8.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OrderStatusChip(order.status)
+                                Text(
+                                    order.createdAt.take(10),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF757575)
+                                )
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "Сумма: ${order.totalAmount.toLong()} ₽",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = OrangePrimary
+                            )
+                            order.deliveryAddress?.let {
+                                Spacer(Modifier.height(4.dp))
+                                Text("Адрес: $it", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1A1A1A))
+                            }
+                            order.comment?.let {
+                                Spacer(Modifier.height(4.dp))
+                                Text("Комментарий: $it", style = MaterialTheme.typography.bodySmall, color = Color(0xFF757575))
+                            }
+                        }
+                    }
+                }
+
+                val availableStatuses = ALL_STATUSES.filter { it.first != order.status }
+                if (availableStatuses.isNotEmpty() && order.status != "CANCELLED") {
+                    item {
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(2.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                ExposedDropdownMenuBox(
+                                    expanded = statusExpanded,
+                                    onExpandedChange = { statusExpanded = it }
+                                ) {
+                                    OutlinedTextField(
+                                        value = "Изменить статус...",
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        label = { Text("Статус") },
+                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(statusExpanded) },
+                                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = OrangePrimary)
+                                    )
+                                    ExposedDropdownMenu(
+                                        expanded = statusExpanded,
+                                        onDismissRequest = { statusExpanded = false },
+                                        modifier = Modifier.background(Color.White)
+                                    ) {
+                                        availableStatuses.forEach { (status, label) ->
+                                            DropdownMenuItem(
+                                                text = { Text(label) },
+                                                onClick = {
+                                                    statusExpanded = false
+                                                    if (status == "CANCELLED") {
+                                                        pendingStatus = status
+                                                        showCancelDialog = true
+                                                    } else {
+                                                        viewModel.updateStatus(orderId, status)
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
-                        Spacer(Modifier.height(8.dp))
                     }
-
-                    if (order.status != "CANCELLED" && order.status != "DELIVERED") {
-                        OutlinedButton(
-                            onClick = { showCancelDialog = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                        ) { Text("Отменить заказ") }
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Text("Товары", style = MaterialTheme.typography.titleMedium)
-                    Divider()
                 }
+
+                item {
+                    Text(
+                        "Товары",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF757575),
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+                }
+
                 items(order.items) { item ->
-                    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column(Modifier.weight(1f)) {
-                            Text(item.productName, style = MaterialTheme.typography.bodyMedium)
-                            Text("${item.quantity} шт. × ${item.productPrice.toLong()} ₽", style = MaterialTheme.typography.bodySmall)
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.productName, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1A1A1A))
+                                Text(
+                                    "${item.quantity} шт. × ${item.productPrice.toLong()} ₽",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF757575)
+                                )
+                            }
+                            Text(
+                                "${(item.quantity * item.productPrice).toLong()} ₽",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = OrangePrimary
+                            )
                         }
-                        Text("${(item.quantity * item.productPrice).toLong()} ₽")
                     }
-                    Divider()
                 }
             }
         }

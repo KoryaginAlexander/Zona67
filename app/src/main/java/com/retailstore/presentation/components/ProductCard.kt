@@ -2,56 +2,105 @@ package com.retailstore.presentation.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.retailstore.domain.model.Product
+import com.retailstore.presentation.theme.OrangePrimary
 
 @Composable
 fun ProductCard(
     product: Product,
     onClick: () -> Unit,
     onAddToCart: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isInWishlist: Boolean = false,
+    onWishlistToggle: (() -> Unit)? = null,
+    index: Int? = null
 ) {
     Card(
         modifier = modifier.clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(2.dp)
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column {
-            AsyncImage(
-                model = product.firstImageUrl,
-                contentDescription = product.name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth().height(140.dp)
-            )
-            Column(modifier = Modifier.padding(8.dp)) {
-                product.brand?.let { Text(it, style = MaterialTheme.typography.labelSmall) }
+            Box {
+                AsyncImage(
+                    model = product.firstImageUrl,
+                    contentDescription = product.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                )
+                if (onWishlistToggle != null) {
+                    IconButton(
+                        onClick = onWishlistToggle,
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    ) {
+                        Icon(
+                            imageVector = if (isInWishlist) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = if (isInWishlist) "Убрать из избранного" else "В избранное",
+                            tint = if (isInWishlist) Color.Red else Color.White
+                        )
+                    }
+                }
+            }
+            Column(modifier = Modifier.padding(10.dp)) {
+                product.brand?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF9E9E9E)
+                    )
+                }
                 Text(
                     product.name,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 18.sp,
+                    color = Color(0xFF1A1A1A)
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(6.dp))
                 Text(
                     "${product.price.toLong()} ₽",
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary
+                    fontWeight = FontWeight.Bold,
+                    color = OrangePrimary
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(2.dp))
                 StockBadge(stock = product.stock)
                 Spacer(Modifier.height(8.dp))
                 Button(
                     onClick = onAddToCart,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = product.isInStock
+                    enabled = product.isInStock,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = OrangePrimary,
+                        disabledContainerColor = Color(0xFFDDDDDD)
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(vertical = 6.dp)
                 ) {
-                    Text("В корзину", style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        text = if (product.isInStock) "В корзину" else "Нет в наличии",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
             }
         }

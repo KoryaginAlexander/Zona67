@@ -1,7 +1,10 @@
 package com.retailstore.presentation.screens.catalog
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
@@ -10,11 +13,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.retailstore.presentation.components.StockBadge
+import com.retailstore.presentation.theme.OrangePrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,74 +41,271 @@ fun ProductDetailScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(uiState.product?.name ?: "") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null) } },
-                actions = {
-                    IconButton(onClick = { viewModel.toggleWishlist() }) {
-                        Icon(Icons.Default.FavoriteBorder, "Избранное")
-                    }
-                }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        when {
-            uiState.loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            uiState.product != null -> {
-                val product = uiState.product!!
-                LazyColumn(modifier = Modifier.padding(padding)) {
-                    item {
-                        AsyncImage(
-                            model = product.firstImageUrl,
-                            contentDescription = product.name,
-                            contentScale = ContentScale.FillWidth,
-                            modifier = Modifier.fillMaxWidth().height(280.dp)
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            uiState.product?.let { product ->
+                Surface(
+                    shadowElevation = 12.dp,
+                    color = Color.White
+                ) {
+                    Button(
+                        onClick = { viewModel.addToCart() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        enabled = product.isInStock,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = OrangePrimary,
+                            disabledContainerColor = Color(0xFFDDDDDD)
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        contentPadding = PaddingValues(vertical = 14.dp)
+                    ) {
+                        Text(
+                            text = if (product.isInStock) "Добавить в корзину" else "Нет в наличии",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
+                }
+            }
+        }
+    ) { padding ->
+        when {
+            uiState.loading -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = OrangePrimary)
+            }
+
+            uiState.product != null -> {
+                val product = uiState.product!!
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                ) {
+                    // Hero image with floating buttons
                     item {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            product.brand?.let { Text(it, style = MaterialTheme.typography.labelMedium) }
-                            Text(product.name, style = MaterialTheme.typography.headlineSmall)
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                "${product.price.toLong()} ₽",
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = MaterialTheme.colorScheme.primary
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp)
+                        ) {
+                            AsyncImage(
+                                model = product.firstImageUrl,
+                                contentDescription = product.name,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
                             )
-                            Spacer(Modifier.height(4.dp))
-                            StockBadge(product.stock)
-                            Spacer(Modifier.height(16.dp))
-                            product.description?.let {
-                                Text(it, style = MaterialTheme.typography.bodyMedium)
-                                Spacer(Modifier.height(16.dp))
-                            }
-                            if (product.specs.isNotEmpty()) {
-                                Text("Характеристики", style = MaterialTheme.typography.titleMedium)
-                                Spacer(Modifier.height(8.dp))
-                                product.specs.forEach { spec ->
-                                    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-                                        Text(spec.key, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                                        Text(spec.value, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                                    }
-                                    Divider()
-                                }
-                                Spacer(Modifier.height(16.dp))
-                            }
-                            Button(
-                                onClick = { viewModel.addToCart() },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = product.isInStock
+                            // gradient overlay top for button readability
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp)
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(Color.Black.copy(alpha = 0.45f), Color.Transparent)
+                                        )
+                                    )
+                                    .align(Alignment.TopCenter)
+                            )
+                            // Back button
+                            Box(
+                                modifier = Modifier
+                                    .padding(start = 12.dp, top = 12.dp)
+                                    .statusBarsPadding()
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.35f))
+                                    .align(Alignment.TopStart),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text(if (product.isInStock) "Добавить в корзину" else "Нет в наличии")
+                                IconButton(onClick = onBack) {
+                                    Icon(
+                                        Icons.Default.ArrowBack,
+                                        contentDescription = "Назад",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            // Wishlist button
+                            Box(
+                                modifier = Modifier
+                                    .padding(end = 12.dp, top = 12.dp)
+                                    .statusBarsPadding()
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.35f))
+                                    .align(Alignment.TopEnd),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                IconButton(onClick = { viewModel.toggleWishlist() }) {
+                                    Icon(
+                                        imageVector = if (uiState.isInWishlist) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                        contentDescription = "Избранное",
+                                        tint = if (uiState.isInWishlist) Color.Red else Color.White,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Content card
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.White, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                                .offset(y = (-16).dp)
+                                .padding(horizontal = 20.dp)
+                                .padding(top = 24.dp, bottom = 8.dp)
+                        ) {
+                            // Brand
+                            product.brand?.let {
+                                Text(
+                                    it.uppercase(),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = OrangePrimary,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(Modifier.height(4.dp))
+                            }
+                            // Name
+                            Text(
+                                product.name,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A1A1A),
+                                lineHeight = 28.sp
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            // Price + stock row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "${product.price.toLong()} ₽",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = OrangePrimary
+                                )
+                                StockChip(stock = product.stock)
+                            }
+                        }
+                    }
+
+                    // Description
+                    product.description?.let { desc ->
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp)
+                                    .padding(bottom = 16.dp)
+                            ) {
+                                SectionTitle("Описание")
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    desc,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF444444),
+                                    lineHeight = 22.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // Specs
+                    if (product.specs.isNotEmpty()) {
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp)
+                                    .padding(bottom = 24.dp)
+                            ) {
+                                SectionTitle("Характеристики")
+                                Spacer(Modifier.height(10.dp))
+                                Card(
+                                    shape = RoundedCornerShape(12.dp),
+                                    elevation = CardDefaults.cardElevation(0.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column {
+                                        product.specs.forEachIndexed { idx, spec ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    spec.key,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = Color(0xFF757575),
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                                Text(
+                                                    spec.value,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = Color(0xFF1A1A1A),
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                            }
+                                            if (idx < product.specs.size - 1) {
+                                                HorizontalDivider(
+                                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                                    color = Color(0xFFEEEEEE)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = Color(0xFF1A1A1A)
+    )
+}
+
+@Composable
+private fun StockChip(stock: Int) {
+    val (bg, text, label) = if (stock > 0)
+        Triple(Color(0xFFE8F5E9), Color(0xFF2E7D32), "В наличии: $stock шт.")
+    else
+        Triple(Color(0xFFFFEBEE), Color(0xFFB71C1C), "Нет в наличии")
+
+    Box(
+        modifier = Modifier
+            .background(bg, RoundedCornerShape(20.dp))
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            color = text,
+            fontWeight = FontWeight.Medium
+        )
     }
 }

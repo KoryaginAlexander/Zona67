@@ -1,17 +1,29 @@
 package com.retailstore.presentation.screens.profile
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.retailstore.presentation.theme.OrangePrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,14 +44,42 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Профиль") },
-                actions = {
-                    if (!uiState.editing) {
-                        IconButton(onClick = { viewModel.setEditing(true) }) { Icon(Icons.Default.Edit, null) }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .statusBarsPadding()
+                    .height(56.dp)
+                    .padding(horizontal = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(color = Color(0xFF1A1A1A), fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
+                            append("Zona")
+                        }
+                        withStyle(SpanStyle(color = OrangePrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
+                            append("67")
+                        }
+                    }
+                )
+                Text(
+                    text = "Профиль",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF757575),
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 16.dp)
+                )
+                if (!uiState.editing) {
+                    IconButton(
+                        onClick = { viewModel.setEditing(true) },
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = "Редактировать", tint = OrangePrimary)
                     }
                 }
-            )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -47,45 +87,142 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             uiState.user?.let { user ->
-                Text(user.email, style = MaterialTheme.typography.bodyMedium)
+                // Avatar + email header
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(OrangePrimary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = (user.fullName?.firstOrNull() ?: user.email.firstOrNull() ?: '?')
+                                .uppercaseChar().toString(),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = user.fullName ?: "—",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1A1A1A)
+                        )
+                        Text(
+                            text = user.email,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF757575)
+                        )
+                    }
+                }
+
                 if (uiState.editing) {
-                    OutlinedTextField(
-                        value = editName,
-                        onValueChange = { editName = it },
-                        label = { Text("Имя") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-                    )
-                    OutlinedTextField(
-                        value = editAddress,
-                        onValueChange = { editAddress = it },
-                        label = { Text("Адрес доставки") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                        minLines = 2
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { viewModel.setEditing(false) }, modifier = Modifier.weight(1f)) { Text("Отмена") }
-                        Button(onClick = { viewModel.updateProfile(editName, editAddress) }, modifier = Modifier.weight(1f)) { Text("Сохранить") }
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = editName,
+                                onValueChange = { editName = it },
+                                label = { Text("Имя") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = OrangePrimary
+                                )
+                            )
+                            OutlinedTextField(
+                                value = editAddress,
+                                onValueChange = { editAddress = it },
+                                label = { Text("Адрес доставки") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                minLines = 2,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = OrangePrimary
+                                )
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(
+                                    onClick = { viewModel.setEditing(false) },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) { Text("Отмена") }
+                                Button(
+                                    onClick = { viewModel.updateProfile(editName, editAddress) },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary)
+                                ) { Text("Сохранить") }
+                            }
+                        }
                     }
                 } else {
-                    ListItem(headlineContent = { Text("Имя") }, supportingContent = { Text(user.fullName ?: "—") })
-                    ListItem(headlineContent = { Text("Адрес") }, supportingContent = { Text(user.address ?: "—") })
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(4.dp)) {
+                            ListItem(
+                                headlineContent = { Text("Имя", style = MaterialTheme.typography.labelMedium, color = Color(0xFF757575)) },
+                                supportingContent = { Text(user.fullName ?: "—", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1A1A1A)) },
+                                colors = ListItemDefaults.colors(containerColor = Color.White)
+                            )
+                            Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                            ListItem(
+                                headlineContent = { Text("Адрес", style = MaterialTheme.typography.labelMedium, color = Color(0xFF757575)) },
+                                supportingContent = { Text(user.address ?: "—", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1A1A1A)) },
+                                colors = ListItemDefaults.colors(containerColor = Color.White)
+                            )
+                        }
+                    }
                 }
             }
-            Divider()
-            Button(onClick = onMyOrders, modifier = Modifier.fillMaxWidth()) { Text("Мои заказы") }
+
+            Spacer(Modifier.height(4.dp))
+
+            Button(
+                onClick = onMyOrders,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary)
+            ) { Text("Мои заказы") }
+
             if (uiState.user?.isAdmin == true) {
-                Button(onClick = onAdminPanel, modifier = Modifier.fillMaxWidth()) { Text("Панель администратора") }
+                Button(
+                    onClick = onAdminPanel,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A1A1A))
+                ) { Text("Панель администратора") }
             }
+
             OutlinedButton(
                 onClick = { viewModel.logout() },
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) {
                 Text("Выйти")

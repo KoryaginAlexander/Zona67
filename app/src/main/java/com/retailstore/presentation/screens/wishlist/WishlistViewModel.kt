@@ -39,7 +39,7 @@ class WishlistViewModel @Inject constructor(
             return@launch
         }
         when (val result = wishlistRepository.getWishlist()) {
-            is Result.Success -> _uiState.update { it.copy(loading = false, items = result.data) }
+            is Result.Success -> _uiState.update { it.copy(loading = false, items = result.data.filter { item -> item.stock > 0 }) }
             is Result.Error -> _uiState.update { it.copy(loading = false, error = result.message) }
             else -> {}
         }

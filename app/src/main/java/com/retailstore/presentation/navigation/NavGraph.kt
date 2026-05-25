@@ -1,5 +1,6 @@
 package com.retailstore.presentation.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,7 +12,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.retailstore.presentation.screens.admin.AdminPanelScreen
 import com.retailstore.presentation.screens.admin.orders.AdminOrderDetailScreen
 import com.retailstore.presentation.screens.admin.orders.AdminOrderListScreen
@@ -23,6 +26,7 @@ import com.retailstore.presentation.screens.cart.CartScreen
 import com.retailstore.presentation.screens.cart.CheckoutScreen
 import com.retailstore.presentation.screens.catalog.CatalogScreen
 import com.retailstore.presentation.screens.catalog.ProductDetailScreen
+import com.retailstore.presentation.screens.home.HomeScreen
 import com.retailstore.presentation.screens.orders.OrderDetailScreen
 import com.retailstore.presentation.screens.orders.OrdersScreen
 import com.retailstore.presentation.screens.profile.ProfileScreen
@@ -32,7 +36,11 @@ import com.retailstore.presentation.viewmodel.MainViewModel
 sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
-    object Catalog : Screen("catalog")
+    object Home : Screen("home")
+    object Catalog : Screen("catalog?query={query}") {
+        val baseRoute = "catalog"
+        fun withQuery(q: String) = "catalog?query=${Uri.encode(q)}"
+    }
     object ProductDetail : Screen("product/{productId}") {
         fun createRoute(id: String) = "product/$id"
     }
@@ -60,7 +68,8 @@ sealed class Screen(val route: String) {
 data class BottomNavItem(val screen: Screen, val label: String, val icon: ImageVector)
 
 val bottomNavItems = listOf(
-    BottomNavItem(Screen.Catalog, "Каталог", Icons.Default.Home),
+    BottomNavItem(Screen.Home, "Главная", Icons.Default.Home),
+    BottomNavItem(Screen.Catalog, "Каталог", Icons.Default.List),
     BottomNavItem(Screen.Cart, "Корзина", Icons.Default.ShoppingCart),
     BottomNavItem(Screen.Wishlist, "Избранное", Icons.Default.Favorite),
     BottomNavItem(Screen.Profile, "Профиль", Icons.Default.Person)
@@ -77,8 +86,8 @@ fun RetailStoreNavGraph() {
     val currentRoute = currentBackStack?.destination?.route
 
     val showBottomBar = currentRoute in listOf(
-        Screen.Catalog.route, Screen.Cart.route, Screen.Wishlist.route, Screen.Profile.route
-    )
+        Screen.Home.route, Screen.Catalog.route, Screen.Cart.route, Screen.Wishlist.route, Screen.Profile.route
+    ) || currentRoute?.startsWith(Screen.Catalog.baseRoute) == true
 
     Scaffold(
         bottomBar = {
@@ -96,12 +105,24 @@ fun RetailStoreNavGraph() {
                                 }
                             },
                             label = { Text(item.label) },
-                            selected = currentRoute == item.screen.route,
+                            selected = if (item.screen == Screen.Catalog)
+                                currentRoute?.startsWith(Screen.Catalog.baseRoute) == true
+                            else currentRoute == item.screen.route,
                             onClick = {
-                                navController.navigate(item.screen.route) {
-                                    popUpTo(Screen.Catalog.route) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                if (item.screen == Screen.Home || item.screen == Screen.Catalog) {
+                                    navController.navigate(
+                                        if (item.screen == Screen.Catalog) Screen.Catalog.baseRoute
+                                        else item.screen.route
+                                    ) {
+                                        popUpTo(Screen.Home.route) { inclusive = false }
+                                        launchSingleTop = true
+                                    }
+                                } else {
+                                    navController.navigate(item.screen.route) {
+                                        popUpTo(Screen.Home.route) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             }
                         )
@@ -112,13 +133,13 @@ fun RetailStoreNavGraph() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = if (isLoggedIn) Screen.Catalog.route else Screen.Login.route,
+            startDestination = if (isLoggedIn) Screen.Home.route else Screen.Login.route,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
                     onLoginSuccess = {
-                        navController.navigate(Screen.Catalog.route) {
+                        navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
@@ -128,14 +149,32 @@ fun RetailStoreNavGraph() {
             composable(Screen.Register.route) {
                 RegisterScreen(
                     onRegisterSuccess = {
-                        navController.navigate(Screen.Catalog.route) {
+                        navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
-            composable(Screen.Catalog.route) {
+            composable(Screen.Home.route) {
+                HomeScreen(
+                    onProductClick = { navController.navigate(Screen.ProductDetail.createRoute(it)) },
+                    onSearch = { query ->
+                        navController.navigate(Screen.Catalog.withQuery(query)) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
+                            launchSingleTop = false
+                        }
+                    }
+                )
+            }
+            composable(
+                route = Screen.Catalog.route,
+                arguments = listOf(navArgument("query") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
+            ) {
                 CatalogScreen(
                     onProductClick = { navController.navigate(Screen.ProductDetail.createRoute(it)) }
                 )
@@ -167,7 +206,7 @@ fun RetailStoreNavGraph() {
             composable(Screen.OrderSuccess.route) {
                 OrderSuccessScreen(
                     onGoHome = {
-                        navController.navigate(Screen.Catalog.route) {
+                        navController.navigate(Screen.Home.route) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
@@ -176,7 +215,8 @@ fun RetailStoreNavGraph() {
             composable(Screen.Wishlist.route) {
                 WishlistScreen(
                     onProductClick = { navController.navigate(Screen.ProductDetail.createRoute(it)) },
-                    onLoginRequired = { navController.navigate(Screen.Login.route) }
+                    onLoginRequired = { navController.navigate(Screen.Login.route) },
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(Screen.Profile.route) {

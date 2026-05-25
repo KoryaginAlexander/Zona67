@@ -12,6 +12,7 @@ interface CartRepository {
     suspend fun clearCart(): Result<Unit>
     suspend fun mergeGuestCart(): Result<Cart>
     fun getGuestCartCount(): kotlinx.coroutines.flow.Flow<Int>
+    fun observeCartCount(): kotlinx.coroutines.flow.Flow<Int>
     suspend fun addToGuestCart(productId: String, productName: String, productPrice: Double, imageUrl: String?, quantity: Int)
     suspend fun clearGuestCart()
 }

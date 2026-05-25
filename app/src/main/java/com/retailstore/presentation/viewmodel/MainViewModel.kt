@@ -19,6 +19,6 @@ class MainViewModel @Inject constructor(
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val cartCount: StateFlow<Int> = cartRepository.getGuestCartCount()
+    val cartCount: StateFlow<Int> = cartRepository.observeCartCount()
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 }

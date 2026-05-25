@@ -1,19 +1,27 @@
 package com.retailstore.presentation.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
+val OrangePrimary = Color(0xFFFF6B00)
+val DarkText = Color(0xFF1A1A1A)
+val SurfaceGray = Color(0xFFF5F5F7)
+
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF1565C0),
+    primary = OrangePrimary,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFD0E4FF),
-    secondary = Color(0xFF00897B),
+    primaryContainer = Color(0xFFFFDDC0),
+    onPrimaryContainer = DarkText,
+    secondary = DarkText,
     onSecondary = Color.White,
-    background = Color(0xFFF8F9FA),
-    surface = Color.White,
+    background = Color.White,
+    onBackground = DarkText,
+    surface = SurfaceGray,
+    onSurface = DarkText,
+    surfaceVariant = SurfaceGray,
+    onSurfaceVariant = Color(0xFF757575),
     error = Color(0xFFB00020)
 )
 
