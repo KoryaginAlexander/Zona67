@@ -7,6 +7,7 @@ import java.util.UUID
 data class Order(
     val id: UUID,
     val userId: UUID,
+    val userEmail: String = "",
     val status: String,
     val totalAmount: BigDecimal,
     val deliveryAddress: String?,

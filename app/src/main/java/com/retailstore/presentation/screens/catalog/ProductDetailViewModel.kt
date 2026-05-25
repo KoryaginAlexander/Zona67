@@ -5,8 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.retailstore.data.local.TokenDataStore
 import com.retailstore.domain.model.Product
 import com.retailstore.domain.model.Result
+import com.retailstore.domain.model.Review
 import com.retailstore.domain.repository.CartRepository
 import com.retailstore.domain.repository.ProductRepository
+import com.retailstore.domain.repository.ReviewRepository
+import com.retailstore.domain.repository.UserRepository
 import com.retailstore.domain.repository.WishlistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +24,9 @@ data class ProductDetailUiState(
     val product: Product? = null,
     val error: String? = null,
     val message: String? = null,
-    val isInWishlist: Boolean = false
+    val isInWishlist: Boolean = false,
+    val reviews: List<Review> = emptyList(),
+    val currentUserId: String? = null
 )
 
 @HiltViewModel
@@ -29,6 +34,8 @@ class ProductDetailViewModel @Inject constructor(
     private val productRepository: ProductRepository,
     private val cartRepository: CartRepository,
     private val wishlistRepository: WishlistRepository,
+    private val reviewRepository: ReviewRepository,
+    private val userRepository: UserRepository,
     private val tokenDataStore: TokenDataStore
 ) : ViewModel() {
 
@@ -41,6 +48,8 @@ class ProductDetailViewModel @Inject constructor(
             is Result.Success -> {
                 _uiState.value = ProductDetailUiState(loading = false, product = result.data)
                 checkWishlistStatus(id)
+                loadReviews(id)
+                loadCurrentUser()
             }
             is Result.Error -> _uiState.value = ProductDetailUiState(loading = false, error = result.message)
             else -> {}
@@ -51,6 +60,21 @@ class ProductDetailViewModel @Inject constructor(
         if (!tokenDataStore.isLoggedIn()) return@launch
         when (val r = wishlistRepository.getWishlist()) {
             is Result.Success -> _uiState.update { it.copy(isInWishlist = r.data.any { item -> item.productId == productId }) }
+            else -> {}
+        }
+    }
+
+    private fun loadReviews(productId: String) = viewModelScope.launch {
+        when (val r = reviewRepository.getReviews(productId)) {
+            is Result.Success -> _uiState.update { it.copy(reviews = r.data) }
+            else -> {}
+        }
+    }
+
+    private fun loadCurrentUser() = viewModelScope.launch {
+        if (!tokenDataStore.isLoggedIn()) return@launch
+        when (val r = userRepository.getMe()) {
+            is Result.Success -> _uiState.update { it.copy(currentUserId = r.data.id) }
             else -> {}
         }
     }
@@ -78,6 +102,20 @@ class ProductDetailViewModel @Inject constructor(
         } else {
             wishlistRepository.addToWishlist(product.id)
             _uiState.update { it.copy(isInWishlist = true, message = "Добавлено в избранное") }
+        }
+    }
+
+    fun deleteReview() = viewModelScope.launch {
+        val product = _uiState.value.product ?: return@launch
+        when (reviewRepository.deleteReview(product.id)) {
+            is Result.Success -> {
+                val currentUserId = _uiState.value.currentUserId
+                _uiState.update { it.copy(
+                    reviews = it.reviews.filter { r -> r.userId != currentUserId },
+                    message = "Отзыв удалён"
+                ) }
+            }
+            else -> {}
         }
     }
 

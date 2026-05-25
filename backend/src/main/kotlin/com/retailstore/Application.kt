@@ -1,4 +1,4 @@
-Yewpackage com.retailstore
+package com.retailstore
 
 import com.retailstore.di.appModule
 import com.retailstore.plugins.*

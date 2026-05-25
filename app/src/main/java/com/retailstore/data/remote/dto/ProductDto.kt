@@ -18,7 +18,9 @@ data class ProductDto(
     @SerializedName("model") val model: String?,
     @SerializedName("imageUrls") val imageUrls: List<String>?,
     @SerializedName("isActive") val isActive: Boolean,
-    @SerializedName("specs") val specs: List<ProductSpecDto>?
+    @SerializedName("specs") val specs: List<ProductSpecDto>?,
+    @SerializedName("averageRating") val averageRating: Double? = null,
+    @SerializedName("reviewCount") val reviewCount: Int? = null
 )
 
 data class ProductsPageDto(

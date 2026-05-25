@@ -11,7 +11,9 @@ data class Product(
     val model: String?,
     val imageUrls: List<String>,
     val isActive: Boolean,
-    val specs: List<ProductSpec>
+    val specs: List<ProductSpec>,
+    val averageRating: Double = 0.0,
+    val reviewCount: Int = 0
 ) {
     val isInStock: Boolean get() = stock > 0
     val firstImageUrl: String? get() = imageUrls.firstOrNull()

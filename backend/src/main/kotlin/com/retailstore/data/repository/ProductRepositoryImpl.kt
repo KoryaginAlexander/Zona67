@@ -2,6 +2,7 @@ package com.retailstore.data.repository
 
 import com.retailstore.data.database.tables.ProductSpecsTable
 import com.retailstore.data.database.tables.ProductsTable
+import com.retailstore.data.database.tables.ReviewsTable
 import com.retailstore.domain.model.Product
 import com.retailstore.domain.model.ProductSpec
 import com.retailstore.domain.repository.ProductFilter
@@ -21,7 +22,7 @@ class ProductRepositoryImpl : ProductRepository {
         if (raw.isNullOrBlank()) emptyList()
         else try { Json.decodeFromString(raw) } catch (_: Exception) { emptyList() }
 
-    private fun ResultRow.toProduct(specs: List<ProductSpec>) = Product(
+    private fun ResultRow.toProduct(specs: List<ProductSpec>, avgRating: Double = 0.0, reviewCount: Int = 0) = Product(
         id = this[ProductsTable.id],
         categoryId = this[ProductsTable.categoryId],
         name = this[ProductsTable.name],
@@ -33,9 +34,22 @@ class ProductRepositoryImpl : ProductRepository {
         imageUrls = parseImageUrls(this[ProductsTable.imageUrls]),
         isActive = this[ProductsTable.isActive],
         specs = specs,
+        averageRating = avgRating,
+        reviewCount = reviewCount,
         createdAt = this[ProductsTable.createdAt],
         updatedAt = this[ProductsTable.updatedAt]
     )
+
+    private fun loadRatingsMap(productIds: List<UUID>): Map<UUID, Pair<Double, Int>> {
+        if (productIds.isEmpty()) return emptyMap()
+        val avgExpr = ReviewsTable.rating.avg()
+        val countExpr = ReviewsTable.id.count()
+        return ReviewsTable
+            .slice(ReviewsTable.productId, avgExpr, countExpr)
+            .select { ReviewsTable.productId inList productIds }
+            .groupBy(ReviewsTable.productId)
+            .associate { it[ReviewsTable.productId] to ((it[avgExpr]?.toDouble() ?: 0.0) to it[countExpr].toInt()) }
+    }
 
     private fun loadSpecs(productId: UUID): List<ProductSpec> =
         ProductSpecsTable.select { ProductSpecsTable.productId eq productId }
@@ -66,9 +80,14 @@ class ProductRepositoryImpl : ProductRepository {
             }
 
             val offset = ((filter.page - 1) * filter.limit).toLong()
-            val products = query.limit(filter.limit, offset).map { row ->
-                val specs = loadSpecs(row[ProductsTable.id])
-                row.toProduct(specs)
+            val rows = query.limit(filter.limit, offset).toList()
+            val productIds = rows.map { it[ProductsTable.id] }
+            val ratingsMap = loadRatingsMap(productIds)
+            val products = rows.map { row ->
+                val id = row[ProductsTable.id]
+                val specs = loadSpecs(id)
+                val (avg, cnt) = ratingsMap[id] ?: (0.0 to 0)
+                row.toProduct(specs, avg, cnt)
             }
             products to total
         }
@@ -77,7 +96,8 @@ class ProductRepositoryImpl : ProductRepository {
         newSuspendedTransaction {
             ProductsTable.select { ProductsTable.id eq id }.singleOrNull()?.let { row ->
                 val specs = loadSpecs(id)
-                row.toProduct(specs)
+                val (avg, cnt) = loadRatingsMap(listOf(id))[id] ?: (0.0 to 0)
+                row.toProduct(specs, avg, cnt)
             }
         }
 

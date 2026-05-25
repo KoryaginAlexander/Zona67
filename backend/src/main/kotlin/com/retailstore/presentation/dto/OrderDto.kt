@@ -24,6 +24,7 @@ data class OrderItemResponse(
 data class OrderResponse(
     val id: String,
     val userId: String,
+    val userEmail: String = "",
     val status: String,
     val totalAmount: Double,
     val deliveryAddress: String? = null,

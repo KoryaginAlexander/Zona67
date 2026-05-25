@@ -17,6 +17,7 @@ data class AdminOrderListUiState(
     val loading: Boolean = true,
     val orders: List<Order> = emptyList(),
     val selectedStatus: String? = null,
+    val searchQuery: String = "",
     val error: String? = null
 )
 
@@ -28,14 +29,37 @@ class AdminOrderListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AdminOrderListUiState())
     val uiState: StateFlow<AdminOrderListUiState> = _uiState.asStateFlow()
 
-    init { load(null) }
+    private var allOrders: List<Order> = emptyList()
 
-    fun load(status: String?) = viewModelScope.launch {
-        _uiState.update { it.copy(loading = true, selectedStatus = status) }
-        when (val result = orderRepository.getAllOrders(status)) {
-            is Result.Success -> _uiState.update { it.copy(loading = false, orders = result.data) }
+    init { load() }
+
+    fun load() = viewModelScope.launch {
+        _uiState.update { it.copy(loading = true) }
+        when (val result = orderRepository.getAllOrders(null)) {
+            is Result.Success -> {
+                allOrders = result.data
+                _uiState.update { it.copy(loading = false, orders = applyFilters(allOrders, it.selectedStatus, it.searchQuery)) }
+            }
             is Result.Error -> _uiState.update { it.copy(loading = false, error = result.message) }
             else -> {}
         }
+    }
+
+    fun setStatus(status: String?) {
+        _uiState.update { it.copy(selectedStatus = status, orders = applyFilters(allOrders, status, it.searchQuery)) }
+    }
+
+    fun setSearch(query: String) {
+        _uiState.update { it.copy(searchQuery = query, orders = applyFilters(allOrders, it.selectedStatus, query)) }
+    }
+
+    private fun applyFilters(orders: List<Order>, status: String?, query: String): List<Order> {
+        return orders
+            .filter { if (status != null) it.status == status else true }
+            .filter {
+                if (query.isBlank()) true
+                else it.id.takeLast(8).contains(query, ignoreCase = true)
+                        || it.userEmail.contains(query, ignoreCase = true)
+            }
     }
 }

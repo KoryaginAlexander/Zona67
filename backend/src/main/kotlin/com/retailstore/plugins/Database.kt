@@ -36,7 +36,8 @@ fun Application.configureDatabase() {
             CartItemsTable,
             WishlistItemsTable,
             OrdersTable,
-            OrderItemsTable
+            OrderItemsTable,
+            ReviewsTable
         )
     }
 }

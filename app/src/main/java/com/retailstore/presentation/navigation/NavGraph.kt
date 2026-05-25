@@ -242,7 +242,8 @@ fun RetailStoreNavGraph() {
                 val orderId = backStack.arguments?.getString("orderId") ?: return@composable
                 OrderDetailScreen(
                     orderId = orderId,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onProductClick = { navController.navigate(Screen.ProductDetail.createRoute(it)) }
                 )
             }
             composable(Screen.AdminPanel.route) {

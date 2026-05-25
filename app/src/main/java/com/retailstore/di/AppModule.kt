@@ -53,6 +53,7 @@ object NetworkModule {
     @Provides @Singleton fun provideCartApi(r: Retrofit): CartApi = r.create(CartApi::class.java)
     @Provides @Singleton fun provideWishlistApi(r: Retrofit): WishlistApi = r.create(WishlistApi::class.java)
     @Provides @Singleton fun provideOrderApi(r: Retrofit): OrderApi = r.create(OrderApi::class.java)
+    @Provides @Singleton fun provideReviewApi(r: Retrofit): ReviewApi = r.create(ReviewApi::class.java)
 }
 
 @Module
@@ -90,4 +91,5 @@ abstract class RepositoryModule {
     @Binds @Singleton abstract fun bindWishlistRepository(impl: WishlistRepositoryImpl): WishlistRepository
     @Binds @Singleton abstract fun bindOrderRepository(impl: OrderRepositoryImpl): OrderRepository
     @Binds @Singleton abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
+    @Binds @Singleton abstract fun bindReviewRepository(impl: ReviewRepositoryImpl): ReviewRepository
 }

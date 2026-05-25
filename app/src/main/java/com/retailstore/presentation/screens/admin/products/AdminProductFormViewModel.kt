@@ -1,10 +1,12 @@
 package com.retailstore.presentation.screens.admin.products
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.storage.FirebaseStorage
 import com.retailstore.data.remote.api.ProductApi
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.retailstore.data.remote.dto.CreateProductRequest
 import com.retailstore.data.remote.dto.ProductSpecDto
 import com.retailstore.data.remote.dto.UpdateProductRequest
@@ -33,7 +35,8 @@ data class AdminProductFormUiState(
 @HiltViewModel
 class AdminProductFormViewModel @Inject constructor(
     private val productRepository: ProductRepository,
-    private val productApi: ProductApi
+    private val productApi: ProductApi,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminProductFormUiState())
@@ -72,7 +75,10 @@ class AdminProductFormViewModel @Inject constructor(
             try {
                 val storageRef = FirebaseStorage.getInstance().reference
                     .child("products/${UUID.randomUUID()}.jpg")
-                storageRef.putFile(imageUri).await()
+                val stream = context.contentResolver.openInputStream(imageUri)
+                    ?: throw Exception("Не удалось открыть изображение")
+                storageRef.putStream(stream).await()
+                stream.close()
                 val url = storageRef.downloadUrl.await().toString()
                 imageUrls.add(0, url)
             } catch (e: Exception) {

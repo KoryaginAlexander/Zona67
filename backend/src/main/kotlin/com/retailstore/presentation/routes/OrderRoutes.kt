@@ -128,6 +128,7 @@ private fun ApplicationCall.userId(): UUID {
 private fun com.retailstore.domain.model.Order.toResponse() = OrderResponse(
     id = id.toString(),
     userId = userId.toString(),
+    userEmail = userEmail,
     status = status,
     totalAmount = totalAmount.toDouble(),
     deliveryAddress = deliveryAddress,

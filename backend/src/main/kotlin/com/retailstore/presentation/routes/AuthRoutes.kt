@@ -28,6 +28,9 @@ fun Route.authRoutes() {
                 val firebaseData = FirebaseUtils.verifyIdToken(req.firebaseIdToken)
                 var user = userRepository.findByFirebaseUid(firebaseData.uid)
                 if (user == null) {
+                    user = userRepository.findByEmail(firebaseData.email)
+                }
+                if (user == null) {
                     val role = if (firebaseData.email == adminEmail) "ADMIN" else "CUSTOMER"
                     user = userRepository.create(firebaseData.uid, firebaseData.email, req.fullName, role)
                 }

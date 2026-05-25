@@ -3,6 +3,7 @@ package com.retailstore.domain.model
 data class Order(
     val id: String,
     val userId: String,
+    val userEmail: String = "",
     val status: String,
     val totalAmount: Double,
     val deliveryAddress: String?,

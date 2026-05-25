@@ -22,6 +22,7 @@ data class OrderItemDto(
 data class OrderDto(
     @SerializedName("id") val id: String,
     @SerializedName("userId") val userId: String,
+    @SerializedName("userEmail") val userEmail: String? = null,
     @SerializedName("status") val status: String,
     @SerializedName("totalAmount") val totalAmount: Double,
     @SerializedName("deliveryAddress") val deliveryAddress: String?,

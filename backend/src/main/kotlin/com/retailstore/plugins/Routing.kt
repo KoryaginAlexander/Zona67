@@ -41,6 +41,7 @@ fun Application.configureRouting() {
             cartRoutes()
             wishlistRoutes()
             orderRoutes()
+            reviewRoutes()
         }
     }
 }

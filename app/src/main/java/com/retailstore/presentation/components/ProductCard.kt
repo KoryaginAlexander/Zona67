@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -82,6 +83,23 @@ fun ProductCard(
                     fontWeight = FontWeight.Bold,
                     color = OrangePrimary
                 )
+                Spacer(Modifier.height(3.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Icon(Icons.Default.Star, contentDescription = null, tint = OrangePrimary, modifier = Modifier.size(11.dp))
+                    Text(
+                        if (product.averageRating > 0) "%.1f".format(product.averageRating) else "0",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF757575)
+                    )
+                    Text(
+                        "(${product.reviewCount} отз.)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF9E9E9E)
+                    )
+                }
                 Spacer(Modifier.height(2.dp))
                 StockBadge(stock = product.stock)
                 Spacer(Modifier.height(8.dp))

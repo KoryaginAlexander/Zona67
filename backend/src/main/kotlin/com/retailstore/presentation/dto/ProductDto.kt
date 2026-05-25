@@ -43,7 +43,9 @@ data class ProductResponse(
     val model: String? = null,
     val imageUrls: List<String> = emptyList(),
     val isActive: Boolean,
-    val specs: List<ProductSpecDto> = emptyList()
+    val specs: List<ProductSpecDto> = emptyList(),
+    val averageRating: Double = 0.0,
+    val reviewCount: Int = 0
 )
 
 @Serializable

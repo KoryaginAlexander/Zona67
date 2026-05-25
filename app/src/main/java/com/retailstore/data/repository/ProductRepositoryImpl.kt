@@ -65,5 +65,7 @@ fun com.retailstore.data.remote.dto.ProductDto.toDomain() = Product(
     id = id, categoryId = categoryId, name = name, description = description,
     price = price, stock = stock, brand = brand, model = model,
     imageUrls = imageUrls ?: emptyList(), isActive = isActive,
-    specs = specs?.map { ProductSpec(it.key, it.value) } ?: emptyList()
+    specs = specs?.map { ProductSpec(it.key, it.value) } ?: emptyList(),
+    averageRating = averageRating ?: 0.0,
+    reviewCount = reviewCount ?: 0
 )

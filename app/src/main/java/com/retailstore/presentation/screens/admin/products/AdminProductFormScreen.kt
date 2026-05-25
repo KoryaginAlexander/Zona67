@@ -104,7 +104,7 @@ fun AdminProductFormScreen(
                     shape = fieldShape,
                     colors = fieldColors
                 )
-                ExposedDropdownMenu(expanded = categoryExpanded, onDismissRequest = { categoryExpanded = false }) {
+                ExposedDropdownMenu(expanded = categoryExpanded, onDismissRequest = { categoryExpanded = false }, modifier = Modifier.background(Color.White)) {
                     uiState.categories.forEach { cat ->
                         DropdownMenuItem(text = { Text(cat.name) }, onClick = {
                             selectedCategoryId = cat.id

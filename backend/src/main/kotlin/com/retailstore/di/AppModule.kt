@@ -22,4 +22,5 @@ val appModule = module {
     single<CartRepository> { CartRepositoryImpl() }
     single<WishlistRepository> { WishlistRepositoryImpl() }
     single<OrderRepository> { OrderRepositoryImpl() }
+    single<ReviewRepository> { ReviewRepositoryImpl() }
 }

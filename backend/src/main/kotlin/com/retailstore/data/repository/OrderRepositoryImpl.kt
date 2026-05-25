@@ -30,9 +30,10 @@ class OrderRepositoryImpl : OrderRepository {
             )
         }
 
-    private fun ResultRow.toOrder() = Order(
+    private fun ResultRow.toOrder(userEmail: String = "") = Order(
         id = this[OrdersTable.id],
         userId = this[OrdersTable.userId],
+        userEmail = userEmail,
         status = this[OrdersTable.status],
         totalAmount = this[OrdersTable.totalAmount],
         deliveryAddress = this[OrdersTable.deliveryAddress],
@@ -116,7 +117,13 @@ class OrderRepositoryImpl : OrderRepository {
                 OrdersTable.select { OrdersTable.status eq status }
             else
                 OrdersTable.selectAll()
-            query.orderBy(OrdersTable.createdAt to SortOrder.DESC).map { it.toOrder() }
+            val orders = query.orderBy(OrdersTable.createdAt to SortOrder.DESC).map { it.toOrder() }
+            val userIds = orders.map { it.userId }.toSet()
+            val emailMap = if (userIds.isNotEmpty())
+                UsersTable.select { UsersTable.id inList userIds }
+                    .associate { it[UsersTable.id] to it[UsersTable.email] }
+            else emptyMap()
+            orders.map { it.copy(userEmail = emailMap[it.userId] ?: "") }
         }
 
     override suspend fun updateStatus(id: UUID, status: String): Order? =

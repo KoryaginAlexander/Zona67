@@ -138,5 +138,7 @@ private fun com.retailstore.domain.model.Product.toResponse() = ProductResponse(
     model = model,
     imageUrls = imageUrls,
     isActive = isActive,
-    specs = specs.map { ProductSpecDto(it.key, it.value) }
+    specs = specs.map { ProductSpecDto(it.key, it.value) },
+    averageRating = averageRating,
+    reviewCount = reviewCount
 )

@@ -33,10 +33,15 @@ fun WishlistScreen(
     viewModel: WishlistViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) { viewModel.load() }
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let { snackbarHostState.showSnackbar(it); viewModel.clearMessage() }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Box(
                 modifier = Modifier
@@ -49,50 +54,29 @@ fun WishlistScreen(
             ) {
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(SpanStyle(color = Color(0xFF1A1A1A), fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
-                            append("Zona")
-                        }
-                        withStyle(SpanStyle(color = OrangePrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
-                            append("67")
-                        }
+                        withStyle(SpanStyle(color = Color(0xFF1A1A1A), fontWeight = FontWeight.Bold, fontSize = 22.sp)) { append("Zona") }
+                        withStyle(SpanStyle(color = OrangePrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)) { append("67") }
                     }
                 )
                 Text(
                     text = "Избранное",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF757575),
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 16.dp)
+                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
                 )
             }
         }
     ) { padding ->
         when {
-            uiState.loading -> Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
+            uiState.loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = OrangePrimary)
             }
 
-            uiState.isGuest -> Box(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
+            uiState.isGuest -> Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Favorite,
-                        contentDescription = null,
-                        tint = Color(0xFFDDDDDD),
-                        modifier = Modifier.size(72.dp)
-                    )
+                    Icon(Icons.Default.Favorite, contentDescription = null, tint = Color(0xFFDDDDDD), modifier = Modifier.size(72.dp))
                     Spacer(Modifier.height(16.dp))
-                    Text(
-                        "Войдите, чтобы видеть избранное",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFF757575)
-                    )
+                    Text("Войдите, чтобы видеть избранное", style = MaterialTheme.typography.bodyLarge, color = Color(0xFF757575))
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = onLoginRequired,
@@ -103,23 +87,11 @@ fun WishlistScreen(
                 }
             }
 
-            uiState.items.isEmpty() -> Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
+            uiState.items.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Favorite,
-                        contentDescription = null,
-                        tint = Color(0xFFDDDDDD),
-                        modifier = Modifier.size(72.dp)
-                    )
+                    Icon(Icons.Default.Favorite, contentDescription = null, tint = Color(0xFFDDDDDD), modifier = Modifier.size(72.dp))
                     Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Избранное пусто",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF757575)
-                    )
+                    Text("Избранное пусто", style = MaterialTheme.typography.titleMedium, color = Color(0xFF757575))
                 }
             }
 
@@ -143,35 +115,34 @@ fun WishlistScreen(
                                     model = item.productImageUrl,
                                     contentDescription = item.productName,
                                     contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(140.dp)
+                                    modifier = Modifier.fillMaxWidth().height(140.dp)
                                 )
                                 IconButton(
                                     onClick = { viewModel.remove(item.productId) },
                                     modifier = Modifier.align(Alignment.TopEnd)
                                 ) {
-                                    Icon(
-                                        Icons.Default.Favorite,
-                                        contentDescription = "Убрать из избранного",
-                                        tint = Color.Red
-                                    )
+                                    Icon(Icons.Default.Favorite, contentDescription = "Убрать из избранного", tint = Color.Red)
                                 }
                             }
                             Column(Modifier.padding(8.dp)) {
-                                Text(
-                                    item.productName,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                Text(item.productName, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                 Spacer(Modifier.height(4.dp))
-                                Text(
-                                    "${item.productPrice.toLong()} ₽",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = OrangePrimary
-                                )
+                                Text("${item.productPrice.toLong()} ₽", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = OrangePrimary)
+                                Spacer(Modifier.height(6.dp))
+                                Button(
+                                    onClick = { viewModel.addToCart(item) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
+                                    contentPadding = PaddingValues(vertical = 6.dp),
+                                    enabled = item.stock > 0
+                                ) {
+                                    Text(
+                                        if (item.stock > 0) "В корзину" else "Нет в наличии",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
                             }
                         }
                     }

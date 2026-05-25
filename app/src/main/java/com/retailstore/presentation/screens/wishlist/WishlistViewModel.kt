@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.retailstore.data.local.TokenDataStore
 import com.retailstore.domain.model.Result
+import com.retailstore.domain.repository.CartRepository
 import com.retailstore.domain.repository.WishlistItem
 import com.retailstore.domain.repository.WishlistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,12 +19,14 @@ data class WishlistUiState(
     val loading: Boolean = false,
     val items: List<WishlistItem> = emptyList(),
     val isGuest: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val message: String? = null
 )
 
 @HiltViewModel
 class WishlistViewModel @Inject constructor(
     private val wishlistRepository: WishlistRepository,
+    private val cartRepository: CartRepository,
     private val tokenDataStore: TokenDataStore
 ) : ViewModel() {
 
@@ -39,7 +42,7 @@ class WishlistViewModel @Inject constructor(
             return@launch
         }
         when (val result = wishlistRepository.getWishlist()) {
-            is Result.Success -> _uiState.update { it.copy(loading = false, items = result.data.filter { item -> item.stock > 0 }) }
+            is Result.Success -> _uiState.update { it.copy(loading = false, items = result.data) }
             is Result.Error -> _uiState.update { it.copy(loading = false, error = result.message) }
             else -> {}
         }
@@ -49,4 +52,15 @@ class WishlistViewModel @Inject constructor(
         wishlistRepository.removeFromWishlist(productId)
         load()
     }
+
+    fun addToCart(item: WishlistItem) = viewModelScope.launch {
+        if (tokenDataStore.isLoggedIn()) {
+            cartRepository.addToCart(item.productId, 1)
+        } else {
+            cartRepository.addToGuestCart(item.productId, item.productName, item.productPrice, item.productImageUrl, 1)
+        }
+        _uiState.update { it.copy(message = "${item.productName} добавлен в корзину") }
+    }
+
+    fun clearMessage() = _uiState.update { it.copy(message = null) }
 }

@@ -16,6 +16,8 @@ data class Product(
     val imageUrls: List<String>,
     val isActive: Boolean,
     val specs: List<ProductSpec>,
+    val averageRating: Double = 0.0,
+    val reviewCount: Int = 0,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )

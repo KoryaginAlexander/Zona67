@@ -77,7 +77,7 @@ class OrderRepositoryImpl @Inject constructor(
 }
 
 private fun OrderDto.toDomain() = Order(
-    id = id, userId = userId, status = status, totalAmount = totalAmount,
+    id = id, userId = userId, userEmail = userEmail ?: "", status = status, totalAmount = totalAmount,
     deliveryAddress = deliveryAddress, comment = comment,
     items = items.map { OrderItem(it.id, it.productId, it.productName, it.productPrice, it.quantity) },
     createdAt = createdAt, updatedAt = updatedAt
