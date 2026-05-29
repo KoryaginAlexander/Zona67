@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -24,7 +25,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.retailstore.presentation.theme.OrangePrimary
-import com.retailstore.presentation.theme.SurfaceGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +35,31 @@ fun AdminProductListScreen(
     viewModel: AdminProductListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    uiState.productToDelete?.let { product ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDelete() },
+            title = { Text("Удалить товар?") },
+            text = {
+                Column {
+                    Text("«${product.name}» будет удалён безвозвратно.")
+                    uiState.deleteError?.let {
+                        Spacer(Modifier.height(8.dp))
+                        Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.confirmDelete() },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) { Text("Удалить") }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissDelete() }) { Text("Отмена") }
+            }
+        )
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -50,7 +75,7 @@ fun AdminProductListScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .statusBarsPadding()
             ) {
                 Box(
@@ -63,13 +88,13 @@ fun AdminProductListScreen(
                         onClick = onBack,
                         modifier = Modifier.align(Alignment.CenterStart)
                     ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = Color(0xFF1A1A1A))
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
                         text = "Товары",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF1A1A1A)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -86,8 +111,8 @@ fun AdminProductListScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = OrangePrimary,
                         unfocusedBorderColor = Color.Transparent,
-                        focusedContainerColor = SurfaceGray,
-                        unfocusedContainerColor = SurfaceGray
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
 
@@ -166,7 +191,7 @@ fun AdminProductListScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Row(
                             modifier = Modifier
@@ -180,7 +205,7 @@ fun AdminProductListScreen(
                                     product.name,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFF1A1A1A)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
@@ -197,8 +222,13 @@ fun AdminProductListScreen(
                                     )
                                 }
                             }
-                            IconButton(onClick = { onEditProduct(product.id) }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Редактировать", tint = OrangePrimary)
+                            Row {
+                                IconButton(onClick = { onEditProduct(product.id) }) {
+                                    Icon(Icons.Default.Edit, contentDescription = "Редактировать", tint = OrangePrimary)
+                                }
+                                IconButton(onClick = { viewModel.requestDelete(product) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = MaterialTheme.colorScheme.error)
+                                }
                             }
                         }
                     }

@@ -32,4 +32,7 @@ interface ProductApi {
 
     @PATCH("products/{id}/activate")
     suspend fun activateProduct(@Path("id") id: String): Response<Unit>
+
+    @DELETE("products/{id}")
+    suspend fun deleteProduct(@Path("id") id: String): Response<Unit>
 }

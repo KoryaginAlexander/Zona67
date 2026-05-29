@@ -3,20 +3,27 @@ package com.retailstore.presentation.screens.catalog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
@@ -25,7 +32,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.retailstore.presentation.components.ProductCard
 import com.retailstore.presentation.theme.OrangePrimary
-import com.retailstore.presentation.theme.SurfaceGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,9 +40,11 @@ fun CatalogScreen(
     viewModel: CatalogViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val searchHistory by viewModel.searchHistory.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val lazyGridState = rememberLazyGridState()
     var showFilters by remember { mutableStateOf(false) }
+    var searchFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.cartMessage) {
         uiState.cartMessage?.let {
@@ -72,16 +80,17 @@ fun CatalogScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(Color.White).statusBarsPadding()) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface).statusBarsPadding()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    val onSurface = MaterialTheme.colorScheme.onSurface
                     Text(
                         text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = Color(0xFF1A1A1A), fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
+                            withStyle(SpanStyle(color = onSurface, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
                                 append("Zona")
                             }
                             withStyle(SpanStyle(color = OrangePrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
@@ -99,16 +108,30 @@ fun CatalogScreen(
                     OutlinedTextField(
                         value = uiState.searchQuery,
                         onValueChange = viewModel::setSearch,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { searchFocused = it.isFocused },
                         placeholder = { Text("Поиск по названию, бренду...", color = Color(0xFF9E9E9E)) },
                         leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFF9E9E9E)) },
+                        trailingIcon = {
+                            if (uiState.searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { viewModel.setSearch("") }) {
+                                    Icon(Icons.Default.Clear, contentDescription = "Очистить", tint = Color(0xFF9E9E9E))
+                                }
+                            }
+                        },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Search
+                        ),
+                        keyboardActions = KeyboardActions(onSearch = { viewModel.submitSearch() }),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = OrangePrimary,
                             unfocusedBorderColor = Color.Transparent,
-                            focusedContainerColor = SurfaceGray,
-                            unfocusedContainerColor = SurfaceGray
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     )
                     Spacer(Modifier.width(4.dp))
@@ -135,7 +158,42 @@ fun CatalogScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        if (uiState.loading && uiState.products.isEmpty()) {
+        if (searchFocused && uiState.searchQuery.isBlank() && searchHistory.isNotEmpty()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "История поиска",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color(0xFF757575)
+                        )
+                        TextButton(onClick = { viewModel.clearHistory() }) {
+                            Text("Очистить", color = OrangePrimary, style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
+                items(searchHistory) { query ->
+                    ListItem(
+                        headlineContent = { Text(query, style = MaterialTheme.typography.bodyMedium) },
+                        leadingContent = { Icon(Icons.Default.Search, null, tint = Color(0xFF9E9E9E), modifier = Modifier.size(18.dp)) },
+                        modifier = Modifier.clickable { viewModel.selectHistoryItem(query) },
+                        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF5F5F5))
+                }
+            }
+        } else if (uiState.loading && uiState.products.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = OrangePrimary)
             }
@@ -221,7 +279,7 @@ private fun FilterBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
     ) {
         Column(

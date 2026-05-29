@@ -36,7 +36,6 @@ import coil.compose.AsyncImage
 import com.retailstore.domain.model.Category
 import com.retailstore.domain.model.Product
 import com.retailstore.presentation.theme.OrangePrimary
-import com.retailstore.presentation.theme.SurfaceGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +61,7 @@ fun HomeScreen(
         topBar = {
             Column(
                 modifier = Modifier
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .statusBarsPadding()
             ) {
                 Box(
@@ -71,9 +70,10 @@ fun HomeScreen(
                         .height(56.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    val onSurface = MaterialTheme.colorScheme.onSurface
                     Text(
                         text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = Color(0xFF1A1A1A), fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
+                            withStyle(SpanStyle(color = onSurface, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
                                 append("Zona")
                             }
                             withStyle(SpanStyle(color = OrangePrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
@@ -101,6 +101,13 @@ fun HomeScreen(
                             )
                         }
                     },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Очистить", tint = Color(0xFF9E9E9E))
+                            }
+                        }
+                    },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -111,8 +118,8 @@ fun HomeScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = OrangePrimary,
                         unfocusedBorderColor = Color.Transparent,
-                        focusedContainerColor = SurfaceGray,
-                        unfocusedContainerColor = SurfaceGray
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
                 Spacer(Modifier.height(4.dp))
@@ -186,7 +193,7 @@ private fun CategoryItem(name: String, icon: ImageVector, selected: Boolean, onC
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape)
-                .background(if (selected) OrangePrimary else SurfaceGray),
+                .background(if (selected) OrangePrimary else MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -278,7 +285,7 @@ private fun HomeProductCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(2.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.fillMaxHeight()) {
             Box {
@@ -322,7 +329,7 @@ private fun HomeProductCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         lineHeight = 16.sp,
-                        color = Color(0xFF1A1A1A)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(

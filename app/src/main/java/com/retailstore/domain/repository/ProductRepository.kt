@@ -16,4 +16,5 @@ interface ProductRepository {
 
     suspend fun getProductById(id: String): Result<Product>
     suspend fun getCategories(): Result<List<Category>>
+    suspend fun deleteProduct(id: String): Result<Unit>
 }

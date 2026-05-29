@@ -154,13 +154,13 @@ fun OrderDetailScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Box(
-                modifier = Modifier.fillMaxWidth().background(Color.White).statusBarsPadding().height(56.dp),
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).statusBarsPadding().height(56.dp),
                 contentAlignment = Alignment.Center
             ) {
                 IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = Color(0xFF1A1A1A))
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = MaterialTheme.colorScheme.onSurface)
                 }
-                Text("Детали заказа", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1A))
+                Text("Детали заказа", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             }
         }
     ) { padding ->
@@ -179,11 +179,11 @@ fun OrderDetailScreen(
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Заказ #${o.id.takeLast(8)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+                            Text("Заказ #${o.id.takeLast(8)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                             Spacer(Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OrderStatusChip(o.status)
@@ -191,7 +191,7 @@ fun OrderDetailScreen(
                             }
                             if (o.deliveryAddress != null) {
                                 Spacer(Modifier.height(8.dp))
-                                Text("Адрес: ${o.deliveryAddress}", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1A1A1A))
+                                Text("Адрес: ${o.deliveryAddress}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                             }
                             if (o.comment != null) {
                                 Spacer(Modifier.height(4.dp))
@@ -210,7 +210,7 @@ fun OrderDetailScreen(
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column {
@@ -270,7 +270,7 @@ fun OrderDetailScreen(
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -299,14 +299,14 @@ private fun ReviewBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text("Оставить отзыв", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1A))
+            Text("Оставить отзыв", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
 
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 for (star in 1..5) {

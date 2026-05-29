@@ -30,4 +30,5 @@ interface ProductRepository {
         imageUrls: List<String>?, specs: List<Pair<String, String>>?
     ): Product?
     suspend fun setActive(id: UUID, active: Boolean): Boolean
+    suspend fun delete(id: UUID): Boolean
 }

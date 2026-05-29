@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.retailstore.domain.model.Category
 import com.retailstore.domain.model.Product
 import com.retailstore.domain.model.Result
+import com.retailstore.data.local.SearchHistoryDataStore
 import com.retailstore.data.local.TokenDataStore
 import com.retailstore.domain.repository.CartRepository
 import com.retailstore.domain.repository.ProductRepository
@@ -43,11 +44,15 @@ class CatalogViewModel @Inject constructor(
     private val cartRepository: CartRepository,
     private val wishlistRepository: WishlistRepository,
     private val tokenDataStore: TokenDataStore,
+    private val searchHistoryDataStore: SearchHistoryDataStore,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CatalogUiState(loading = true))
     val uiState: StateFlow<CatalogUiState> = _uiState.asStateFlow()
+
+    val searchHistory: StateFlow<List<String>> = searchHistoryDataStore.history
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val searchFlow = MutableStateFlow("")
     private var loadJob: Job? = null
@@ -98,6 +103,18 @@ class CatalogViewModel @Inject constructor(
         _uiState.update { it.copy(searchQuery = query) }
         searchFlow.value = query
     }
+
+    fun submitSearch() = viewModelScope.launch {
+        val query = _uiState.value.searchQuery
+        if (query.isNotBlank()) searchHistoryDataStore.add(query)
+    }
+
+    fun selectHistoryItem(query: String) {
+        setSearch(query)
+        viewModelScope.launch { searchHistoryDataStore.add(query) }
+    }
+
+    fun clearHistory() = viewModelScope.launch { searchHistoryDataStore.clear() }
 
     fun setCategory(categoryId: Int?) {
         _uiState.update { it.copy(selectedCategory = categoryId) }

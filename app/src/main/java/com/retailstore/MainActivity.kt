@@ -4,8 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.retailstore.presentation.navigation.RetailStoreNavGraph
 import com.retailstore.presentation.theme.RetailStoreTheme
+import com.retailstore.presentation.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -14,7 +18,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RetailStoreTheme {
+            val mainViewModel: MainViewModel = hiltViewModel()
+            val isDarkTheme by mainViewModel.isDarkTheme.collectAsState()
+            RetailStoreTheme(isDarkTheme = isDarkTheme) {
                 RetailStoreNavGraph()
             }
         }

@@ -192,7 +192,8 @@ fun RetailStoreNavGraph() {
             composable(Screen.Cart.route) {
                 CartScreen(
                     onCheckout = { navController.navigate(Screen.Checkout.route) },
-                    onLoginRequired = { navController.navigate(Screen.Login.route) }
+                    onLoginRequired = { navController.navigate(Screen.Login.route) },
+                    onProductClick = { navController.navigate(Screen.ProductDetail.createRoute(it)) }
                 )
             }
             composable(Screen.Checkout.route) {

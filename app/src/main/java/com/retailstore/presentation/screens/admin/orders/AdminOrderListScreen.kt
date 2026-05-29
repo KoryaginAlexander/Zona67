@@ -54,7 +54,7 @@ fun AdminOrderListScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(Color.White)) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -66,13 +66,13 @@ fun AdminOrderListScreen(
                         onClick = onBack,
                         modifier = Modifier.align(Alignment.CenterStart)
                     ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = Color(0xFF1A1A1A))
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
                         text = "Заказы",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF1A1A1A)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -131,7 +131,7 @@ fun AdminOrderListScreen(
                             .clickable { onOrderClick(order.id) },
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Row(
                             modifier = Modifier
@@ -145,7 +145,7 @@ fun AdminOrderListScreen(
                                     "Заказ #${order.id.takeLast(8)}",
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFF1A1A1A)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 if (order.userEmail.isNotEmpty()) {
                                     Spacer(Modifier.height(2.dp))

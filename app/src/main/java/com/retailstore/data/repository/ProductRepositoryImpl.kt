@@ -49,6 +49,18 @@ class ProductRepositoryImpl @Inject constructor(
         Result.Error(message = e.message ?: "Unknown error")
     }
 
+    override suspend fun deleteProduct(id: String): Result<Unit> = try {
+        val response = productApi.deleteProduct(id)
+        when {
+            response.isSuccessful -> Result.Success(Unit)
+            response.code() == 409 -> Result.Error(409, "Товар присутствует в заказах и не может быть удалён")
+            response.code() == 404 -> Result.Error(404, "Товар не найден")
+            else -> Result.Error(response.code(), "Ошибка удаления")
+        }
+    } catch (e: Exception) {
+        Result.Error(message = e.message ?: "Unknown error")
+    }
+
     override suspend fun getCategories(): Result<List<Category>> = try {
         val response = categoryApi.getCategories()
         if (response.isSuccessful) {

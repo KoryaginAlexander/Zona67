@@ -28,7 +28,7 @@ fun AdminPanelScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .statusBarsPadding()
                     .height(56.dp),
                 contentAlignment = Alignment.Center
@@ -37,13 +37,13 @@ fun AdminPanelScreen(
                     onClick = onBack,
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = Color(0xFF1A1A1A))
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = MaterialTheme.colorScheme.onSurface)
                 }
                 Text(
                     text = "Панель администратора",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF1A1A1A)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -60,7 +60,7 @@ fun AdminPanelScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(2.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),
@@ -80,7 +80,7 @@ fun AdminPanelScreen(
                             "Управление товарами",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF1A1A1A)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             "Создание, редактирование, деактивация",
@@ -96,7 +96,7 @@ fun AdminPanelScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(2.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),
@@ -116,7 +116,7 @@ fun AdminPanelScreen(
                             "Управление заказами",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF1A1A1A)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             "Просмотр, смена статуса, отмена",

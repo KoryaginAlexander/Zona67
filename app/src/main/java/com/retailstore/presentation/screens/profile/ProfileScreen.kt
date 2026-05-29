@@ -34,6 +34,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isDarkTheme by viewModel.isDarkTheme.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState.loggedOut) { if (uiState.loggedOut) onLogout() }
@@ -47,15 +48,16 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .statusBarsPadding()
                     .height(56.dp)
                     .padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center
             ) {
+                val onSurface = MaterialTheme.colorScheme.onSurface
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(SpanStyle(color = Color(0xFF1A1A1A), fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
+                        withStyle(SpanStyle(color = onSurface, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
                             append("Zona")
                         }
                         withStyle(SpanStyle(color = OrangePrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
@@ -118,7 +120,7 @@ fun ProfileScreen(
                             text = user.fullName ?: "—",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF1A1A1A)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = user.email,
@@ -131,7 +133,7 @@ fun ProfileScreen(
                 if (uiState.editing) {
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(2.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -147,7 +149,9 @@ fun ProfileScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = OrangePrimary
+                                    focusedBorderColor = OrangePrimary,
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
                             )
                             OutlinedTextField(
@@ -159,7 +163,9 @@ fun ProfileScreen(
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                 minLines = 2,
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = OrangePrimary
+                                    focusedBorderColor = OrangePrimary,
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -180,21 +186,21 @@ fun ProfileScreen(
                 } else {
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(2.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(4.dp)) {
                             ListItem(
                                 headlineContent = { Text("Имя", style = MaterialTheme.typography.labelMedium, color = Color(0xFF757575)) },
-                                supportingContent = { Text(user.fullName ?: "—", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1A1A1A)) },
-                                colors = ListItemDefaults.colors(containerColor = Color.White)
+                                supportingContent = { Text(user.fullName ?: "—", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) },
+                                colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
                             )
                             Divider(modifier = Modifier.padding(horizontal = 16.dp))
                             ListItem(
                                 headlineContent = { Text("Адрес", style = MaterialTheme.typography.labelMedium, color = Color(0xFF757575)) },
-                                supportingContent = { Text(user.address ?: "—", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1A1A1A)) },
-                                colors = ListItemDefaults.colors(containerColor = Color.White)
+                                supportingContent = { Text(user.address ?: "—", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) },
+                                colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
                             )
                         }
                     }
@@ -202,6 +208,29 @@ fun ProfileScreen(
             }
 
             Spacer(Modifier.height(4.dp))
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(2.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Тёмная тема", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                    Switch(
+                        checked = isDarkTheme,
+                        onCheckedChange = { viewModel.toggleDarkTheme() },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = OrangePrimary
+                        )
+                    )
+                }
+            }
 
             Button(
                 onClick = onMyOrders,

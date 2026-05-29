@@ -2,6 +2,7 @@ package com.retailstore.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.retailstore.data.local.AppSettingsDataStore
 import com.retailstore.data.local.TokenDataStore
 import com.retailstore.domain.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +13,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val tokenDataStore: TokenDataStore,
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val appSettingsDataStore: AppSettingsDataStore
 ) : ViewModel() {
 
     val isLoggedIn: StateFlow<Boolean> = tokenDataStore.accessToken
@@ -21,4 +23,7 @@ class MainViewModel @Inject constructor(
 
     val cartCount: StateFlow<Int> = cartRepository.observeCartCount()
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    val isDarkTheme: StateFlow<Boolean> = appSettingsDataStore.isDarkTheme
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 }

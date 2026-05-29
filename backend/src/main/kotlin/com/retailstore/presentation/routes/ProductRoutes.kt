@@ -123,6 +123,22 @@ fun Route.productRoutes() {
                 productRepository.setActive(id, true)
                 call.respond(HttpStatusCode.OK, MessageResponse("Product activated"))
             }
+
+            delete("/{id}") {
+                val principal = call.principal<JWTPrincipal>()!!
+                if (principal.payload.getClaim("role").asString() != "ADMIN") {
+                    call.respond(HttpStatusCode.Forbidden, ErrorResponse("FORBIDDEN", "Admin access required", 403))
+                    return@delete
+                }
+                val id = UUID.fromString(call.parameters["id"])
+                try {
+                    val deleted = productRepository.delete(id)
+                    if (deleted) call.respond(HttpStatusCode.OK, MessageResponse("Product deleted"))
+                    else call.respond(HttpStatusCode.NotFound, ErrorResponse("NOT_FOUND", "Product not found", 404))
+                } catch (e: IllegalStateException) {
+                    call.respond(HttpStatusCode.Conflict, ErrorResponse("CONFLICT", e.message ?: "Cannot delete product", 409))
+                }
+            }
         }
     }
 }

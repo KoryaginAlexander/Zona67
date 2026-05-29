@@ -121,7 +121,7 @@ fun AdminOrderDetailScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .statusBarsPadding()
                     .height(56.dp),
                 contentAlignment = Alignment.Center
@@ -130,13 +130,13 @@ fun AdminOrderDetailScreen(
                     onClick = onBack,
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = Color(0xFF1A1A1A))
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = MaterialTheme.colorScheme.onSurface)
                 }
                 Text(
                     text = "Детали заказа",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF1A1A1A)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
@@ -156,7 +156,7 @@ fun AdminOrderDetailScreen(
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -164,7 +164,7 @@ fun AdminOrderDetailScreen(
                                 "Заказ #${order.id.takeLast(8)}",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1A1A1A)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(Modifier.height(8.dp))
                             Row(
@@ -187,7 +187,7 @@ fun AdminOrderDetailScreen(
                             )
                             order.deliveryAddress?.let {
                                 Spacer(Modifier.height(4.dp))
-                                Text("Адрес: $it", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1A1A1A))
+                                Text("Адрес: $it", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                             }
                             order.comment?.let {
                                 Spacer(Modifier.height(4.dp))
@@ -203,7 +203,7 @@ fun AdminOrderDetailScreen(
                         Card(
                             shape = RoundedCornerShape(12.dp),
                             elevation = CardDefaults.cardElevation(2.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -224,7 +224,7 @@ fun AdminOrderDetailScreen(
                                     ExposedDropdownMenu(
                                         expanded = statusExpanded,
                                         onDismissRequest = { statusExpanded = false },
-                                        modifier = Modifier.background(Color.White)
+                                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                                     ) {
                                         availableStatuses.forEach { (status, label) ->
                                             DropdownMenuItem(
@@ -261,7 +261,7 @@ fun AdminOrderDetailScreen(
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -272,7 +272,7 @@ fun AdminOrderDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(item.productName, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1A1A1A))
+                                Text(item.productName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                                 Text(
                                     "${item.quantity} шт. × ${item.productPrice.toLong()} ₽",
                                     style = MaterialTheme.typography.bodySmall,

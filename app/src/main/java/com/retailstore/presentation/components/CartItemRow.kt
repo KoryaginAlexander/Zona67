@@ -1,5 +1,6 @@
 package com.retailstore.presentation.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,7 +25,8 @@ fun CartItemRow(
     item: CartItem,
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    onClick: () -> Unit = {}
 ) {
     val atMaxStock = item.quantity >= item.stock
 
@@ -38,10 +40,16 @@ fun CartItemRow(
             model = item.productImageUrl,
             contentDescription = item.productName,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.size(72.dp)
+            modifier = Modifier
+                .size(72.dp)
+                .clickable(onClick = onClick)
         )
         Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onClick)
+        ) {
             Text(
                 item.productName,
                 style = MaterialTheme.typography.bodyMedium,
@@ -76,7 +84,7 @@ fun CartItemRow(
                         Icons.Default.Remove,
                         contentDescription = "Уменьшить",
                         modifier = Modifier.size(16.dp),
-                        tint = Color(0xFF1A1A1A)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Text(
@@ -94,7 +102,7 @@ fun CartItemRow(
                         Icons.Default.Add,
                         contentDescription = "Увеличить",
                         modifier = Modifier.size(16.dp),
-                        tint = if (atMaxStock) Color(0xFFCCCCCC) else Color(0xFF1A1A1A)
+                        tint = if (atMaxStock) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.onSurface
                     )
                 }
             }

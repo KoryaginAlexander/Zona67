@@ -47,7 +47,7 @@ fun ProductDetailScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             uiState.product?.let { product ->
-                Surface(shadowElevation = 12.dp, color = Color.White) {
+                Surface(shadowElevation = 12.dp, color = MaterialTheme.colorScheme.surface) {
                     Button(
                         onClick = { viewModel.addToCart() },
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
@@ -116,7 +116,7 @@ fun ProductDetailScreen(
                     item {
                         Column(
                             modifier = Modifier.fillMaxWidth()
-                                .background(Color.White, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                                 .offset(y = (-16).dp)
                                 .padding(horizontal = 20.dp)
                                 .padding(top = 24.dp, bottom = 8.dp)
@@ -125,7 +125,7 @@ fun ProductDetailScreen(
                                 Text(it.uppercase(), style = MaterialTheme.typography.labelMedium, color = OrangePrimary, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp)
                                 Spacer(Modifier.height(4.dp))
                             }
-                            Text(product.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A), lineHeight = 28.sp)
+                            Text(product.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, lineHeight = 28.sp)
                             Spacer(Modifier.height(12.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text("${product.price.toLong()} ₽", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = OrangePrimary)
@@ -136,7 +136,7 @@ fun ProductDetailScreen(
                                 val avg = uiState.reviews.map { it.rating }.average()
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     StarRow(rating = avg.toFloat(), size = 16.dp)
-                                    Text("%.1f".format(avg), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1A))
+                                    Text("%.1f".format(avg), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                                     Text("· ${uiState.reviews.size} отз.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF757575))
                                 }
                             }
@@ -149,7 +149,7 @@ fun ProductDetailScreen(
                             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 16.dp)) {
                                 SectionTitle("Описание")
                                 Spacer(Modifier.height(8.dp))
-                                Text(desc, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF444444), lineHeight = 22.sp)
+                                Text(desc, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, lineHeight = 22.sp)
                             }
                         }
                     }
@@ -163,16 +163,16 @@ fun ProductDetailScreen(
                                 Card(
                                     shape = RoundedCornerShape(12.dp),
                                     elevation = CardDefaults.cardElevation(0.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Column {
                                         product.specs.forEachIndexed { idx, spec ->
                                             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                                                 Text(spec.key, style = MaterialTheme.typography.bodySmall, color = Color(0xFF757575), modifier = Modifier.weight(1f))
-                                                Text(spec.value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
+                                                Text(spec.value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                                             }
-                                            if (idx < product.specs.size - 1) HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFEEEEEE))
+                                            if (idx < product.specs.size - 1) HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                                         }
                                     }
                                 }
@@ -211,16 +211,16 @@ private fun ReviewCard(review: Review) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            Text(review.userName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1A))
+            Text(review.userName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(2.dp))
             StarRow(rating = review.rating.toFloat(), size = 14.dp)
             review.comment?.let {
                 Spacer(Modifier.height(6.dp))
-                Text(it, style = MaterialTheme.typography.bodySmall, color = Color(0xFF444444), lineHeight = 20.sp)
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface, lineHeight = 20.sp)
             }
             Spacer(Modifier.height(4.dp))
             Text(review.createdAt.take(10), style = MaterialTheme.typography.labelSmall, color = Color(0xFFAAAAAA))
@@ -244,16 +244,16 @@ internal fun StarRow(rating: Float, size: androidx.compose.ui.unit.Dp) {
 
 @Composable
 private fun SectionTitle(title: String) {
-    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1A))
+    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
 }
 
 @Composable
 private fun StockChip(stock: Int) {
-    val (bg, text, label) = if (stock > 0)
-        Triple(Color(0xFFE8F5E9), Color(0xFF2E7D32), "В наличии: $stock шт.")
+    val (bgColor, textColor, label) = if (stock > 0)
+        Triple(Color(0xFF4CAF50).copy(alpha = 0.18f), Color(0xFF4CAF50), "В наличии: $stock шт.")
     else
-        Triple(Color(0xFFFFEBEE), Color(0xFFB71C1C), "Нет в наличии")
-    Box(modifier = Modifier.background(bg, RoundedCornerShape(20.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = text, fontWeight = FontWeight.Medium)
+        Triple(MaterialTheme.colorScheme.error.copy(alpha = 0.18f), MaterialTheme.colorScheme.error, "Нет в наличии")
+    Box(modifier = Modifier.background(bgColor, RoundedCornerShape(20.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = textColor, fontWeight = FontWeight.Medium)
     }
 }

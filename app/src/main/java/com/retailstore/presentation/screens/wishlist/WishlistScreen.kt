@@ -46,15 +46,16 @@ fun WishlistScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .statusBarsPadding()
                     .height(56.dp)
                     .padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center
             ) {
+                val onSurface = MaterialTheme.colorScheme.onSurface
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(SpanStyle(color = Color(0xFF1A1A1A), fontWeight = FontWeight.Bold, fontSize = 22.sp)) { append("Zona") }
+                        withStyle(SpanStyle(color = onSurface, fontWeight = FontWeight.Bold, fontSize = 22.sp)) { append("Zona") }
                         withStyle(SpanStyle(color = OrangePrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)) { append("67") }
                     }
                 )
@@ -107,7 +108,7 @@ fun WishlistScreen(
                         modifier = Modifier.clickable { onProductClick(item.productId) },
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column {
                             Box {

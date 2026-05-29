@@ -24,6 +24,7 @@ import com.retailstore.presentation.theme.OrangePrimary
 fun CartScreen(
     onCheckout: () -> Unit,
     onLoginRequired: () -> Unit,
+    onProductClick: (String) -> Unit = {},
     viewModel: CartViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -35,15 +36,16 @@ fun CartScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .statusBarsPadding()
                     .height(56.dp)
                     .padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center
             ) {
+                val onSurface = MaterialTheme.colorScheme.onSurface
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(SpanStyle(color = Color(0xFF1A1A1A), fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
+                        withStyle(SpanStyle(color = onSurface, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
                             append("Zona")
                         }
                         withStyle(SpanStyle(color = OrangePrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)) {
@@ -83,7 +85,8 @@ fun CartScreen(
                                 item = item,
                                 onIncrease = { viewModel.updateQuantity(item.productId, item.quantity + 1) },
                                 onDecrease = { viewModel.updateQuantity(item.productId, item.quantity - 1) },
-                                onRemove = { viewModel.removeItem(item.productId) }
+                                onRemove = { viewModel.removeItem(item.productId) },
+                                onClick = { onProductClick(item.productId) }
                             )
                             Divider()
                         }

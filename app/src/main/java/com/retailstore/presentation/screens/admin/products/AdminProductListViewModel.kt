@@ -22,7 +22,9 @@ data class AdminProductListUiState(
     val searchQuery: String = "",
     val selectedCategoryId: Int? = null,
     val inStockOnly: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val productToDelete: Product? = null,
+    val deleteError: String? = null
 )
 
 @HiltViewModel
@@ -67,6 +69,27 @@ class AdminProductListViewModel @Inject constructor(
 
     fun setInStockOnly(value: Boolean) = _uiState.update { s ->
         s.copy(inStockOnly = value, filteredProducts = applyFilters(s.allProducts, s.searchQuery, s.selectedCategoryId, value))
+    }
+
+    fun requestDelete(product: Product) = _uiState.update { it.copy(productToDelete = product) }
+    fun dismissDelete() = _uiState.update { it.copy(productToDelete = null, deleteError = null) }
+
+    fun confirmDelete() = viewModelScope.launch {
+        val product = _uiState.value.productToDelete ?: return@launch
+        when (val result = productRepository.deleteProduct(product.id)) {
+            is Result.Success -> {
+                val updated = _uiState.value.allProducts.filter { it.id != product.id }
+                _uiState.update { s ->
+                    s.copy(
+                        productToDelete = null,
+                        allProducts = updated,
+                        filteredProducts = applyFilters(updated, s.searchQuery, s.selectedCategoryId, s.inStockOnly)
+                    )
+                }
+            }
+            is Result.Error -> _uiState.update { it.copy(deleteError = result.message) }
+            else -> {}
+        }
     }
 
     private fun applyFilters(products: List<Product>, query: String, categoryId: Int?, inStockOnly: Boolean): List<Product> {

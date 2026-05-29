@@ -1,8 +1,11 @@
 package com.retailstore.data.repository
 
+import com.retailstore.data.database.tables.CartItemsTable
+import com.retailstore.data.database.tables.OrderItemsTable
 import com.retailstore.data.database.tables.ProductSpecsTable
 import com.retailstore.data.database.tables.ProductsTable
 import com.retailstore.data.database.tables.ReviewsTable
+import com.retailstore.data.database.tables.WishlistItemsTable
 import com.retailstore.domain.model.Product
 import com.retailstore.domain.model.ProductSpec
 import com.retailstore.domain.repository.ProductFilter
@@ -172,4 +175,14 @@ class ProductRepositoryImpl : ProductRepository {
                 it[ProductsTable.updatedAt] = LocalDateTime.now()
             } > 0
         }
+
+    override suspend fun delete(id: UUID): Boolean = newSuspendedTransaction {
+        val hasOrders = OrderItemsTable.select { OrderItemsTable.productId eq id }.count() > 0
+        if (hasOrders) throw IllegalStateException("Товар присутствует в заказах и не может быть удалён")
+        ReviewsTable.deleteWhere { ReviewsTable.productId eq id }
+        WishlistItemsTable.deleteWhere { WishlistItemsTable.productId eq id }
+        CartItemsTable.deleteWhere { CartItemsTable.productId eq id }
+        ProductSpecsTable.deleteWhere { ProductSpecsTable.productId eq id }
+        ProductsTable.deleteWhere { ProductsTable.id eq id } > 0
+    }
 }
