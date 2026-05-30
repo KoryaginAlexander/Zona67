@@ -113,7 +113,35 @@ class CartRepositoryImpl @Inject constructor(
         guestCartDao.upsert(GuestCartEntity(productId, productName, productPrice, imageUrl, newQty))
     }
 
+    override suspend fun updateGuestCartItem(productId: String, quantity: Int) {
+        val existing = guestCartDao.findByProductId(productId) ?: return
+        guestCartDao.upsert(existing.copy(quantity = quantity))
+    }
+
+    override suspend fun removeFromGuestCart(productId: String) {
+        val existing = guestCartDao.findByProductId(productId) ?: return
+        guestCartDao.delete(existing)
+    }
+
     override suspend fun clearGuestCart() = guestCartDao.deleteAll()
+
+    override fun getGuestCartFlow(): kotlinx.coroutines.flow.Flow<Cart> =
+        guestCartDao.getAll().map { items ->
+            Cart(
+                items = items.map { e ->
+                    CartItem(
+                        id = e.productId,
+                        productId = e.productId,
+                        productName = e.productName,
+                        productPrice = e.productPrice,
+                        productImageUrl = e.imageUrl,
+                        stock = Int.MAX_VALUE,
+                        quantity = e.quantity
+                    )
+                },
+                total = items.sumOf { it.productPrice * it.quantity }
+            )
+        }
 }
 
 private fun CartDto.toDomain() = Cart(

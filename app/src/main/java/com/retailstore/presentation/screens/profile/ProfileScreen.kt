@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,6 +33,8 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onMyOrders: () -> Unit,
     onAdminPanel: () -> Unit,
+    onLogin: () -> Unit = {},
+    onRegister: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -73,7 +77,7 @@ fun ProfileScreen(
                         .align(Alignment.CenterStart)
                         .padding(start = 16.dp)
                 )
-                if (!uiState.editing) {
+                if (!uiState.editing && uiState.user != null) {
                     IconButton(
                         onClick = { viewModel.setEditing(true) },
                         modifier = Modifier.align(Alignment.CenterEnd)
@@ -93,6 +97,71 @@ fun ProfileScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Тема всегда доступна
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(2.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Тёмная тема", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                    Switch(
+                        checked = isDarkTheme,
+                        onCheckedChange = { viewModel.toggleDarkTheme() },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = OrangePrimary
+                        )
+                    )
+                }
+            }
+
+            if (!uiState.loading && uiState.user == null) {
+                // Гостевое состояние
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(72.dp),
+                        tint = Color(0xFFBBBBBB)
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Войдите в аккаунт",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Чтобы делать заказы,\nотслеживать историю и добавлять в избранное",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF757575),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Button(
+                        onClick = onLogin,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary)
+                    ) { Text("Войти") }
+                    OutlinedButton(
+                        onClick = onRegister,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text("Зарегистрироваться") }
+                }
+            }
+
             uiState.user?.let { user ->
                 // Avatar + email header
                 Row(
@@ -207,54 +276,33 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(Modifier.height(4.dp))
+            if (uiState.user != null) {
+                Spacer(Modifier.height(4.dp))
 
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(2.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Тёмная тема", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                    Switch(
-                        checked = isDarkTheme,
-                        onCheckedChange = { viewModel.toggleDarkTheme() },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = OrangePrimary
-                        )
-                    )
-                }
-            }
-
-            Button(
-                onClick = onMyOrders,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary)
-            ) { Text("Мои заказы") }
-
-            if (uiState.user?.isAdmin == true) {
                 Button(
-                    onClick = onAdminPanel,
+                    onClick = onMyOrders,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A1A1A))
-                ) { Text("Панель администратора") }
-            }
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary)
+                ) { Text("Мои заказы") }
 
-            OutlinedButton(
-                onClick = { viewModel.logout() },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text("Выйти")
+                if (uiState.user?.isAdmin == true) {
+                    Button(
+                        onClick = onAdminPanel,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A1A1A))
+                    ) { Text("Панель администратора") }
+                }
+
+                OutlinedButton(
+                    onClick = { viewModel.logout() },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Выйти")
+                }
             }
         }
     }

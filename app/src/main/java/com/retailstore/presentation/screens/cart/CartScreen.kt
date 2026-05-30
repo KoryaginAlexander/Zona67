@@ -66,13 +66,6 @@ fun CartScreen(
             uiState.loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-            uiState.isGuest -> Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Войдите, чтобы оформить заказ")
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = onLoginRequired) { Text("Войти") }
-                }
-            }
             uiState.cart?.items.isNullOrEmpty() -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Text("Корзина пуста")
             }
@@ -98,7 +91,10 @@ fun CartScreen(
                                 Text("${cart.total.toLong()} ₽", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                             }
                             Spacer(Modifier.height(12.dp))
-                            Button(onClick = onCheckout, modifier = Modifier.fillMaxWidth()) {
+                            Button(
+                                onClick = { if (uiState.isGuest) onLoginRequired() else onCheckout() },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Text("Оформить заказ")
                             }
                         }

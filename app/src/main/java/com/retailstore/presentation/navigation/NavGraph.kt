@@ -135,14 +135,14 @@ fun RetailStoreNavGraph() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = if (isLoggedIn) Screen.Home.route else Screen.Login.route,
+            startDestination = Screen.Home.route,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
                     onLoginSuccess = {
                         navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     },
                     onNavigateToRegister = { navController.navigate(Screen.Register.route) }
@@ -152,7 +152,7 @@ fun RetailStoreNavGraph() {
                 RegisterScreen(
                     onRegisterSuccess = {
                         navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     },
                     onNavigateBack = { navController.popBackStack() }
@@ -225,12 +225,14 @@ fun RetailStoreNavGraph() {
             composable(Screen.Profile.route) {
                 ProfileScreen(
                     onLogout = {
-                        navController.navigate(Screen.Login.route) {
+                        navController.navigate(Screen.Home.route) {
                             popUpTo(0) { inclusive = true }
                         }
                     },
                     onMyOrders = { navController.navigate(Screen.Orders.route) },
-                    onAdminPanel = { navController.navigate(Screen.AdminPanel.route) }
+                    onAdminPanel = { navController.navigate(Screen.AdminPanel.route) },
+                    onLogin = { navController.navigate(Screen.Login.route) },
+                    onRegister = { navController.navigate(Screen.Register.route) }
                 )
             }
             composable(Screen.Orders.route) {

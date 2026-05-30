@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 
 data class CartUiState(
     val loading: Boolean = false,
@@ -39,21 +40,25 @@ class CartViewModel @Inject constructor(
                 else -> {}
             }
         } else {
-            _uiState.update { it.copy(loading = false, isGuest = true) }
+            val guestCart = cartRepository.getGuestCartFlow().first()
+            _uiState.update { it.copy(loading = false, cart = guestCart, isGuest = true) }
         }
     }
 
     fun updateQuantity(productId: String, quantity: Int) = viewModelScope.launch {
-        if (quantity <= 0) {
-            cartRepository.removeFromCart(productId)
+        if (uiState.value.isGuest) {
+            if (quantity <= 0) cartRepository.removeFromGuestCart(productId)
+            else cartRepository.updateGuestCartItem(productId, quantity)
         } else {
-            cartRepository.updateCartItem(productId, quantity)
+            if (quantity <= 0) cartRepository.removeFromCart(productId)
+            else cartRepository.updateCartItem(productId, quantity)
         }
         loadCart()
     }
 
     fun removeItem(productId: String) = viewModelScope.launch {
-        cartRepository.removeFromCart(productId)
+        if (uiState.value.isGuest) cartRepository.removeFromGuestCart(productId)
+        else cartRepository.removeFromCart(productId)
         loadCart()
     }
 
