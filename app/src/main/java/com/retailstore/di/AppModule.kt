@@ -49,6 +49,7 @@ object NetworkModule {
     @Provides @Singleton fun provideAuthApi(r: Retrofit): AuthApi = r.create(AuthApi::class.java)
     @Provides @Singleton fun provideUserApi(r: Retrofit): UserApi = r.create(UserApi::class.java)
     @Provides @Singleton fun provideProductApi(r: Retrofit): ProductApi = r.create(ProductApi::class.java)
+    @Provides @Singleton fun provideImageApi(r: Retrofit): ImageApi = r.create(ImageApi::class.java)
     @Provides @Singleton fun provideCategoryApi(r: Retrofit): CategoryApi = r.create(CategoryApi::class.java)
     @Provides @Singleton fun provideCartApi(r: Retrofit): CartApi = r.create(CartApi::class.java)
     @Provides @Singleton fun provideWishlistApi(r: Retrofit): WishlistApi = r.create(WishlistApi::class.java)

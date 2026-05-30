@@ -38,6 +38,7 @@ fun Application.configureRouting() {
             userRoutes()
             categoryRoutes()
             productRoutes()
+            imageRoutes()
             cartRoutes()
             wishlistRoutes()
             orderRoutes()

@@ -33,6 +33,7 @@ fun Application.configureDatabase() {
             CategoriesTable,
             ProductsTable,
             ProductSpecsTable,
+            ProductImagesTable,
             CartItemsTable,
             WishlistItemsTable,
             OrdersTable,

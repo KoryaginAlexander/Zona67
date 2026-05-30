@@ -4,7 +4,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.storage.FirebaseStorage
+import com.retailstore.BuildConfig
+import com.retailstore.data.remote.api.ImageApi
 import com.retailstore.data.remote.api.ProductApi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.retailstore.data.remote.dto.CreateProductRequest
@@ -20,8 +21,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.util.UUID
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
 data class AdminProductFormUiState(
@@ -36,6 +38,7 @@ data class AdminProductFormUiState(
 class AdminProductFormViewModel @Inject constructor(
     private val productRepository: ProductRepository,
     private val productApi: ProductApi,
+    private val imageApi: ImageApi,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -69,18 +72,25 @@ class AdminProductFormViewModel @Inject constructor(
         productId: String?
     ) = viewModelScope.launch {
         _uiState.update { it.copy(loading = true) }
-        var imageUrls = existingImageUrls.toMutableList()
+        val imageUrls = existingImageUrls.toMutableList()
 
         if (imageUri != null) {
             try {
-                val storageRef = FirebaseStorage.getInstance().reference
-                    .child("products/${UUID.randomUUID()}.jpg")
-                val stream = context.contentResolver.openInputStream(imageUri)
+                val bytes = context.contentResolver.openInputStream(imageUri)?.readBytes()
                     ?: throw Exception("Не удалось открыть изображение")
-                storageRef.putStream(stream).await()
-                stream.close()
-                val url = storageRef.downloadUrl.await().toString()
-                imageUrls.add(0, url)
+                val mimeType = context.contentResolver.getType(imageUri) ?: "image/jpeg"
+                val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+                val part = MultipartBody.Part.createFormData("image", "image.jpg", requestBody)
+
+                val response = imageApi.uploadImage(part)
+                if (response.isSuccessful) {
+                    val relativeUrl = response.body()!!.url
+                    val fullUrl = BuildConfig.BASE_URL.trimEnd('/').removeSuffix("/api/v1") + "/api/v1/$relativeUrl"
+                    imageUrls.add(0, fullUrl)
+                } else {
+                    _uiState.update { it.copy(loading = false, error = "Ошибка загрузки изображения") }
+                    return@launch
+                }
             } catch (e: Exception) {
                 _uiState.update { it.copy(loading = false, error = "Ошибка загрузки изображения: ${e.message}") }
                 return@launch

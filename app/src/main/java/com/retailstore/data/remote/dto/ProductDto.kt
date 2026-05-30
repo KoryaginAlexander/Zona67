@@ -2,6 +2,10 @@ package com.retailstore.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
+data class ImageUploadResponse(
+    @SerializedName("url") val url: String
+)
+
 data class ProductSpecDto(
     @SerializedName("key") val key: String,
     @SerializedName("value") val value: String
